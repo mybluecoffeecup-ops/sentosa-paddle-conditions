@@ -1,0 +1,4 @@
+# Generated in CI by scripts/fetch_tides.py
+data/
+__pycache__/
+.DS_Store

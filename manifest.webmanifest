@@ -1,0 +1,13 @@
+{
+  "name": "Sentosa Paddle Conditions",
+  "short_name": "Paddle Conditions",
+  "description": "Pre-paddle check for Siloso, Sentosa: CAT 1 lightning, haze, tide & current, wind and session forecasts.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a2b1f",
+  "theme_color": "#0a2b1f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

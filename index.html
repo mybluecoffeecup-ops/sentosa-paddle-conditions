@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentosa Paddle Conditions</title>
+<meta name="description" content="Quick pre-paddle check for Siloso, Sentosa: CAT 1 lightning, haze, tide and current with route advice, wind, and forecasts for club sessions — Austcham Paddle Club Singapore.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a2b1f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paddle Conditions">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Figtree:wght@400;500;600;700&family=Chivo+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --deep: #0a2b1f;
+    --green: #0f3d2e;
+    --green-mid: #145c42;
+    --gold: #ffc72c;
+    --bg: #f3f1ea;
+    --surface: #fcfcfb;
+    --line: #e2dfd3;
+    --ink: #12241c;
+    --ink-soft: #51625a;
+    --ink-muted: #7a877f;
+    --water: #2a78d6;
+    --water-fill: rgba(42, 120, 214, 0.16);
+    --night: rgba(10, 43, 31, 0.07);
+    --route-short: rgba(255, 199, 44, 0.45);
+    --route-long: rgba(255, 199, 44, 0.3);
+    --good: #0ca30c;
+    --warning: #fab219;
+    --critical: #d03b3b;
+    --radius: 12px;
+    --font-display: 'Saira Condensed', 'Arial Narrow', sans-serif;
+    --font-body: 'Figtree', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Chivo Mono', 'SFMono-Regular', monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101512;
+      --surface: #1a1a19;
+      --line: #2f3330;
+      --ink: #f2f2ee;
+      --ink-soft: #c3c2b7;
+      --ink-muted: #8d8c84;
+      --water: #3987e5;
+      --water-fill: rgba(57, 135, 229, 0.22);
+      --night: rgba(255, 255, 255, 0.05);
+      --route-short: rgba(255, 199, 44, 0.35);
+      --route-long: rgba(255, 199, 44, 0.2);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101512;
+    --surface: #1a1a19;
+    --line: #2f3330;
+    --ink: #f2f2ee;
+    --ink-soft: #c3c2b7;
+    --ink-muted: #8d8c84;
+    --water: #3987e5;
+    --water-fill: rgba(57, 135, 229, 0.22);
+    --night: rgba(255, 255, 255, 0.05);
+    --route-short: rgba(255, 199, 44, 0.35);
+    --route-long: rgba(255, 199, 44, 0.2);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.45;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  header {
+    background: var(--deep);
+    color: #fff;
+    padding: 14px 16px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    letter-spacing: 0.02em;
+    margin: 0;
+    line-height: 1.1;
+  }
+  h1 span { color: var(--gold); }
+  @media (max-width: 639px) {
+    header { padding-top: 10px; }
+    h1 { font-size: 1.3rem; }
+    .meta { font-size: 0.78rem; gap: 8px; }
+    header button { padding: 3px 10px; }
+    .jump { margin-top: 8px; }
+  }
+  .meta { font-size: 0.85rem; color: #c9d6cf; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    padding: 6px 14px;
+  }
+  header button { border-color: var(--gold); color: var(--gold); font-weight: 600; }
+
+  /* Jump links: Right now + each upcoming session */
+  .jump { display: flex; gap: 6px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; scrollbar-width: none; }
+  .jump a {
+    flex: none;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 4px 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .jump a:first-child { background: var(--gold); color: var(--deep); border-color: var(--gold); }
+  .jump .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.4); }
+  .jump .dot[data-level="go"] { background: var(--good); }
+  .jump .dot[data-level="caution"] { background: var(--warning); }
+  .jump .dot[data-level="hold"] { background: var(--critical); }
+
+  main { padding: 16px; }
+  section[id] { scroll-margin-top: 130px; }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    margin: 28px 0 4px;
+    letter-spacing: 0.02em;
+  }
+  .section-sub { margin: 0 0 12px; color: var(--ink-soft); font-size: 0.9rem; }
+
+  /* Overall verdict */
+  .verdict {
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 8px solid var(--ink-muted);
+    margin-bottom: 16px;
+  }
+  .verdict[data-level="go"] { border-left-color: var(--good); }
+  .verdict[data-level="caution"] { border-left-color: var(--warning); }
+  .verdict[data-level="hold"] { border-left-color: var(--critical); }
+  .verdict h2 {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    margin: 0 0 4px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .verdict ul { margin: 6px 0 0; padding-left: 20px; }
+  .verdict li { margin: 2px 0; }
+  .verdict .fine { color: var(--ink-muted); font-size: 0.8rem; margin: 8px 0 0; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 2px 9px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ink-muted); }
+  .badge[data-level="go"]::before { background: var(--good); }
+  .badge[data-level="caution"]::before { background: var(--warning); }
+  .badge[data-level="hold"]::before { background: var(--critical); }
+  .badge[data-level="info"]::before { background: var(--water); }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+    .span-2 { grid-column: span 2; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-width: 0;
+  }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .card h2, .card h3 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .stat-label { font-size: 0.75rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; line-height: 1.1; }
+  .stat-value.sm { font-size: 1.35rem; }
+  .stat-sub { font-size: 0.82rem; color: var(--ink-soft); }
+  .routes { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+  .routes li {
+    background: color-mix(in srgb, var(--gold) 16%, transparent);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.92rem;
+  }
+  .routes li strong:first-child { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+  .arrow { display: inline-block; transition: transform 0.3s; }
+  .source { font-size: 0.78rem; color: var(--ink-muted); margin: 10px 0 0; }
+  .source a { color: var(--ink-soft); }
+  .err { color: var(--critical); font-size: 0.85rem; }
+  .muted { color: var(--ink-muted); }
+  .note { font-size: 0.82rem; color: var(--ink-soft); margin: 8px 0 0; }
+
+  /* Tide charts (main 3-day chart and per-session mini charts) */
+  .chart-wrap { position: relative; }
+  .tide-svg { width: 100%; height: auto; display: block; }
+  #tide-chart { min-width: 720px; touch-action: pan-x pan-y; }
+  .tide-svg text { font-family: var(--font-body); fill: var(--ink-soft); font-size: 11px; }
+  .tide-svg .day-label { font-weight: 700; fill: var(--ink); font-size: 12px; }
+  .tide-svg .ext-label { font-size: 10.5px; fill: var(--ink); }
+  .tide-svg .grid-line { stroke: var(--line); stroke-width: 1; }
+  .tide-svg .night { fill: var(--night); }
+  .tide-svg .area { fill: var(--water-fill); }
+  .tide-svg .curve { fill: none; stroke: var(--water); stroke-width: 2; }
+  .tide-svg .now-line { stroke: var(--critical); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .tide-svg .now-dot { fill: var(--critical); stroke: var(--surface); stroke-width: 2; }
+  .tide-svg .ext-dot { fill: var(--water); stroke: var(--surface); stroke-width: 2; }
+  .tide-svg .hover-line { stroke: var(--ink-soft); stroke-width: 1; }
+  .tide-svg .session-line { stroke: var(--gold); stroke-width: 2; }
+  .tide-svg .session-label { font-size: 10px; font-weight: 700; fill: var(--ink); }
+  .tide-svg .route-short { fill: var(--route-short); }
+  .tide-svg .route-long { fill: var(--route-long); }
+  .tide-svg .start-line { stroke: var(--ink); stroke-width: 1.5; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--ink-soft); margin-top: 4px; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .legend .l-short::before { background: var(--route-short); }
+  .legend .l-long::before { background: var(--route-long); }
+  .tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--ink); color: var(--surface);
+    font-size: 0.8rem; padding: 4px 8px; border-radius: 6px;
+    transform: translate(-50%, -110%); white-space: nowrap;
+    display: none;
+  }
+  .scroll-x { overflow-x: auto; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; color: var(--ink-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num { font-family: var(--font-mono); }
+
+  details summary { cursor: pointer; color: var(--ink-soft); font-size: 0.88rem; margin-top: 10px; }
+
+  #radar-map { height: 340px; border-radius: 8px; overflow: hidden; background: var(--line); }
+  .radar-controls { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 0.85rem; flex-wrap: wrap; }
+  .radar-controls input[type="range"] { flex: 1; min-width: 140px; }
+  .windy { width: 100%; height: 360px; border: 0; border-radius: 8px; margin-top: 8px; }
+
+  footer { padding: 8px 16px 32px; font-size: 0.8rem; color: var(--ink-muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .arrow { transition: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Sentosa <span>Paddle Conditions</span></h1>
+      <div class="meta">
+        <span id="updated">Loading…</span>
+        <button type="button" id="refresh">Refresh</button>
+      </div>
+    </div>
+    <nav class="jump" id="jump" aria-label="Jump to">
+      <a href="#now"><span class="dot" id="jump-now-dot"></span>Right now</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Right now -->
+  <section id="now" aria-labelledby="now-h">
+    <h2 class="section-title" id="now-h">Right now <span class="muted" style="font-size:1rem">· launching from Siloso</span></h2>
+
+    <!-- Overall verdict -->
+    <div class="verdict" id="verdict" data-level="unknown" aria-live="polite">
+      <h2><span id="verdict-title">Checking conditions…</span></h2>
+      <ul id="verdict-reasons"></ul>
+      <p class="fine">Club rules: no paddling during a CAT 1 lightning alert, or when the 24-hr PSI is above 120. CAT 1 here is our best reading of NEA data (lightning or a thundery / heavy-rain forecast within 6 km of Siloso) — the myENV alert and the crew lead have the final say.</p>
+    </div>
+
+    <div class="grid">
+      <!-- Rain & lightning (CAT 1) -->
+      <section class="card span-2" id="rain-card" aria-labelledby="rain-h">
+        <div class="card-head">
+          <h2 id="rain-h">Lightning &amp; rain (CAT 1)</h2>
+          <span class="badge" id="rain-badge" data-level="unknown">—</span>
+        </div>
+        <div class="stats">
+          <div><div class="stat-label">Lightning (last 30 min)</div><div class="stat-value" id="lightning">—</div><div class="stat-sub" id="lightning-sub"></div></div>
+          <div><div class="stat-label">Next 2 hrs — Sentosa</div><div class="stat-value sm" id="nowcast">—</div><div class="stat-sub" id="nowcast-sub"></div></div>
+          <div><div class="stat-label">Rain now (nearest gauge)</div><div class="stat-value" id="rain-now">—</div><div class="stat-sub" id="rain-now-sub"></div></div>
+        </div>
+        <table>
+          <thead><tr><th>NEA area</th><th>Distance</th><th>Next 2 hrs</th></tr></thead>
+          <tbody id="nowcast-table"></tbody>
+        </table>
+        <div style="margin-top:12px">
+          <div id="radar-map" role="img" aria-label="Rain radar over southern Singapore with recent lightning strikes and the 6 km CAT 1 ring around Siloso"></div>
+          <div class="radar-controls">
+            <button type="button" id="radar-play">Pause</button>
+            <input type="range" id="radar-frame" min="0" max="0" value="0" aria-label="Radar frame">
+            <span id="radar-time" class="muted">Radar loading…</span>
+          </div>
+        </div>
+        <p class="source">Sources: <a href="https://www.nea.gov.sg/weather/rain-areas" target="_blank" rel="noopener">NEA rain areas</a> (radar), <a href="https://www.nea.gov.sg/weather" target="_blank" rel="noopener">NEA 2-hr forecast</a>, lightning &amp; rainfall via <a href="https://data.gov.sg/" target="_blank" rel="noopener">data.gov.sg</a>. Dashed ring = 6 km CAT 1 radius around Siloso.</p>
+      </section>
+
+      <!-- Haze -->
+      <section class="card" id="haze-card" aria-labelledby="haze-h">
+        <div class="card-head">
+          <h2 id="haze-h">Haze — South</h2>
+          <span class="badge" id="haze-badge" data-level="unknown">—</span>
+        </div>
+        <div class="stats">
+          <div><div class="stat-label">24-hr PSI</div><div class="stat-value" id="psi">—</div><div class="stat-sub" id="psi-band"></div></div>
+          <div><div class="stat-label">1-hr PM2.5</div><div class="stat-value" id="pm25">—</div><div class="stat-sub" id="pm25-band"></div></div>
+        </div>
+        <p class="stat-sub" id="haze-time"></p>
+        <p class="source">Club limit: 24-hr PSI 120. Source: <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a> (NEA via data.gov.sg), southern region</p>
+      </section>
+
+      <!-- Wind -->
+      <section class="card" id="wind-card" aria-labelledby="wind-h">
+        <div class="card-head">
+          <h2 id="wind-h">Wind</h2>
+          <span class="badge" data-level="info">Info</span>
+        </div>
+        <div class="stats">
+          <div><div class="stat-label">Forecast now</div><div class="stat-value" id="wind-speed">—</div><div class="stat-sub" id="wind-gust"></div></div>
+          <div><div class="stat-label">From</div><div class="stat-value" id="wind-dir">—</div><div class="stat-sub" id="wind-vs-tide"></div></div>
+          <div><div class="stat-label">Observed (NEA)</div><div class="stat-value" id="wind-obs">—</div><div class="stat-sub" id="wind-obs-sub"></div></div>
+        </div>
+        <div class="scroll-x">
+          <table>
+            <thead><tr><th>Time</th><th>Wind</th><th>Gust</th><th>From</th><th>Rain %</th></tr></thead>
+            <tbody id="wind-table"></tbody>
+          </table>
+        </div>
+        <details id="windy-details">
+          <summary>Windy wind map around Sentosa</summary>
+          <iframe class="windy" id="windy-frame" title="Windy wind map around Sentosa" loading="lazy"></iframe>
+        </details>
+        <p class="source">No club wind limit — shown for planning. Forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Observed: <a href="https://data.gov.sg/" target="_blank" rel="noopener">NEA via data.gov.sg</a> (nearest station) · Map: <a href="https://www.windy.com/?1.255,103.811,12" target="_blank" rel="noopener">Windy</a></p>
+      </section>
+
+      <!-- Tide & current -->
+      <section class="card span-2" id="tide-card" aria-labelledby="tide-h">
+        <div class="card-head">
+          <h2 id="tide-h">Tide, current &amp; route plan</h2>
+          <span class="badge" data-level="info">Info</span>
+        </div>
+        <div class="stats">
+          <div><div class="stat-label">Tide now</div><div class="stat-value" id="tide-state">—</div><div class="stat-sub" id="tide-state-sub"></div></div>
+          <div><div class="stat-label">Height now</div><div class="stat-value" id="tide-height">—</div><div class="stat-sub" id="tide-datum"></div></div>
+          <div><div class="stat-label">Next turn</div><div class="stat-value" id="tide-next">—</div><div class="stat-sub" id="tide-next-sub"></div></div>
+          <div><div class="stat-label">Current</div><div class="stat-value" id="current-dir">—</div><div class="stat-sub" id="current-strength"></div></div>
+        </div>
+        <ul class="routes" id="routes-now"></ul>
+        <div class="chart-wrap">
+          <div class="scroll-x">
+            <svg id="tide-chart" class="tide-svg" viewBox="0 0 1000 260" role="img" aria-labelledby="tide-chart-title">
+              <title id="tide-chart-title">Tide height over the next three days, with upcoming club sessions marked</title>
+            </svg>
+          </div>
+          <div class="tooltip" id="tide-tip"></div>
+        </div>
+        <details>
+          <summary>Tide table</summary>
+          <table>
+            <thead><tr><th>Day</th><th>Tide</th><th>Time</th><th>Height</th></tr></thead>
+            <tbody id="tide-table"></tbody>
+          </table>
+        </details>
+        <p class="source" id="tide-source"></p>
+      </section>
+    </div>
+  </section>
+
+  <!-- Upcoming club sessions -->
+  <section id="sessions" aria-labelledby="sessions-h">
+    <h2 class="section-title" id="sessions-h">Upcoming sessions</h2>
+    <p class="section-sub">Forecasts for the next club sessions. Tide and current are predictable days ahead; CAT 1 and haze can only be called on the day — check <a href="#now">Right now</a> before launching.</p>
+    <div class="grid" id="session-grid"></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <a href="https://mybluecoffeecup-ops.github.io/austcham-paddle-club/">Austcham Paddle Club</a> · Data refreshes every 5 minutes while this page is open. Tide predictions are for Victoria Dock (close to Sentosa, but timings can differ slightly).
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Configuration: club rules, routes and sessions ----------
+  const SPOT = { name: 'Siloso Beach', lat: 1.2547, lon: 103.8110 };
+  const CONFIG = {
+    refreshMs: 5 * 60 * 1000,
+    tideStaleHours: 36,              // older tides.json → fall back to Open-Meteo modelled tides
+    // CAT 1, modelled on the myENV lightning alert: cloud-to-ground lightning, or a thundery-shower
+    // (or heavy-rain) 2-hr forecast, within 6 km. Strikes count for 30 minutes.
+    cat1: { radiusKm: 6, strikeWindowMin: 30, watchKm: 15 },
+    psi: { hold: 120, caution: 100 },  // club rule: don't go above 24-hr PSI 120
+    // 'outback' routes have a fixed outbound heading; 'loop' routes can be paddled either way round.
+    routes: [
+      { key: 'short', name: '10 km — White Marker', minutes: 75, type: 'outback', outbound: 'East', turnPoint: 'the White Marker' },
+      { key: 'long', name: 'Around the islands — up to 2.5 hrs', minutes: 150, type: 'loop' },
+    ],
+    whiteMarker: { lat: 1.252210, lon: 103.848572 },
+    // Club sessions (day of week: 0 = Sunday), in Singapore time.
+    sessions: [
+      { dow: 2, hour: 6, label: 'Tue 6am', routes: ['short'] },
+      { dow: 4, hour: 6, label: 'Thu 6am', routes: ['short'] },
+      { dow: 6, hour: 8, label: 'Sat 8am', routes: ['long'] },
+      { dow: 0, hour: 16, label: 'Sun 4pm', routes: ['long'] },
+    ],
+    // Current set off Sentosa. Falling tide: stream runs east → west. Club rule: push into the
+    // current first and ride it home (falling tide → push East).
+    current: {
+      falling: { flowsTo: 270, label: 'E → W', withIt: 'West', againstIt: 'East' },
+      rising:  { flowsTo: 90,  label: 'W → E', withIt: 'East', againstIt: 'West' },
+    },
+    springRangeM: 2.6,               // typical Singapore spring range, used to describe current strength
+  };
+  const API = 'https://api-open.data.gov.sg/v2/real-time/api';
+  const TZ = 'Asia/Singapore';
+  const HOUR = 3600e3, DAY = 24 * HOUR;
+
+  const $ = (id) => document.getElementById(id);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmtTime = (d) => new Intl.DateTimeFormat('en-SG', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }).format(d);
+  const fmtDay = (d) => new Intl.DateTimeFormat('en-SG', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }).format(d);
+  const fmtDur = (ms) => { const m = Math.round(Math.abs(ms) / 60000); return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m} min`; };
+  const compass = (deg) => ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
+  const arrowFor = (fromDeg) => `<span class="arrow" style="transform:rotate(${fromDeg + 180}deg)" aria-hidden="true">↑</span>`;
+  const sgtMidnight = (ms) => { const off = 8 * HOUR; return Math.floor((ms + off) / DAY) * DAY - off; };
+  const sgtDate = (ms) => new Date(ms + 8 * HOUR).toISOString().slice(0, 10);
+  const distKm = (lat1, lon1, lat2, lon2) => {
+    const r = Math.PI / 180, a = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
+    return 12742 * Math.asin(Math.sqrt(a));
+  };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  async function getJSON(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`${res.status} from ${new URL(url, location.href).host}`);
+    return res.json();
+  }
+
+  // Each rule (CAT 1, haze) reports its own level; the overall verdict is the worst of them.
+  const status = {};
+  const LEVEL_RANK = { go: 0, unknown: 1, caution: 2, hold: 3 };
+  const LEVEL_TEXT = { go: 'Good to go', caution: 'Go — keep watch', hold: 'Hold — don\'t launch', unknown: 'Check sources' };
+  function setStatus(key, badgeId, level, reasons, badgeText) {
+    status[key] = { level, reasons };
+    const b = $(badgeId);
+    b.dataset.level = level;
+    b.textContent = badgeText || { go: 'OK', caution: 'Watch', hold: 'Hold', unknown: 'No data' }[level];
+    renderVerdict();
+  }
+  function renderVerdict() {
+    // CAT 1 first, then haze, so the most urgent rule leads.
+    const entries = ['rain', 'haze'].filter((k) => status[k]).map((k) => status[k]);
+    if (!entries.length) return;
+    const worst = entries.reduce((w, s) => (LEVEL_RANK[s.level] > LEVEL_RANK[w] ? s.level : w), 'go');
+    $('verdict').dataset.level = worst;
+    $('jump-now-dot').dataset.level = worst;
+    $('verdict-title').innerHTML = `<span class="badge" data-level="${worst}">${worst === 'unknown' ? '?' : worst === 'caution' ? 'watch' : worst}</span> ${LEVEL_TEXT[worst]}`;
+    const order = ['hold', 'caution', 'unknown', 'go'];
+    const reasons = entries.flatMap((s) => s.reasons.map((r) => ({ level: s.level, r })))
+      .sort((a, b) => order.indexOf(a.level) - order.indexOf(b.level));
+    $('verdict-reasons').innerHTML = reasons.map(({ r }) => `<li>${r}</li>`).join('');
+  }
+
+  // ---------- Sessions ----------
+  function upcomingSessions(now) {
+    return CONFIG.sessions.map((s) => {
+      for (let d = 0; d < 8; d++) {
+        const t = sgtMidnight(now) + d * DAY + s.hour * HOUR;
+        if (new Date(t + 8 * HOUR).getUTCDay() === s.dow && t > now) return { ...s, t, id: `s-${s.label.replace(/\W+/g, '-').toLowerCase()}` };
+      }
+      return null;
+    }).filter(Boolean).sort((a, b) => a.t - b.t);
+  }
+  const relDay = (t, now) => {
+    const d = Math.round((sgtMidnight(t) - sgtMidnight(now)) / DAY);
+    return d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`;
+  };
+
+  // ---------- Sun times (NOAA approximation) for night shading ----------
+  function sunTimes(dayStartMs) {
+    const r = Math.PI / 180;
+    const jd = (dayStartMs + 12 * HOUR) / DAY + 2440587.5;
+    const n = Math.round(jd - 2451545.0 + 0.0008);
+    const jStar = n - SPOT.lon / 360;
+    const M = (357.5291 + 0.98560028 * jStar) % 360;
+    const C = 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r);
+    const lambda = (M + C + 180 + 102.9372) % 360;
+    const jTransit = 2451545.0 + jStar + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * lambda * r);
+    const decl = Math.asin(Math.sin(lambda * r) * Math.sin(23.44 * r));
+    const cosW = (Math.sin(-0.833 * r) - Math.sin(SPOT.lat * r) * Math.sin(decl)) / (Math.cos(SPOT.lat * r) * Math.cos(decl));
+    const w = Math.acos(cosW) / r;
+    const toMs = (j) => (j - 2440587.5) * DAY;
+    return { rise: toMs(jTransit - w / 360), set: toMs(jTransit + w / 360) };
+  }
+
+  // ---------- Tides ----------
+  // Height between two turns follows a cosine, which is how tide-forecast.com draws its curve.
+  function makeTide(ext, datum, source, modelled) {
+    const height = (t) => {
+      for (let i = 0; i < ext.length - 1; i++) {
+        const a = ext[i], b = ext[i + 1];
+        if (t >= a.t && t <= b.t) return a.h + (b.h - a.h) * (1 - Math.cos(Math.PI * (t - a.t) / (b.t - a.t))) / 2;
+      }
+      return null;
+    };
+    const covers = (from, to) => ext.length > 1 && ext[0].t <= from && ext[ext.length - 1].t >= to;
+    return { ext, datum, source, modelled, height, covers };
+  }
+  // Fallback: turn an hourly modelled sea-level series into high/low turns (parabolic refinement).
+  function extremesFromSeries(times, heights) {
+    const out = [];
+    for (let i = 1; i < heights.length - 1; i++) {
+      const [y0, y1, y2] = [heights[i - 1], heights[i], heights[i + 1]];
+      if (y0 == null || y1 == null || y2 == null) continue;
+      const isHigh = y1 > y0 && y1 >= y2, isLow = y1 < y0 && y1 <= y2;
+      if (!isHigh && !isLow) continue;
+      const denom = y0 - 2 * y1 + y2;
+      const off = denom ? 0.5 * (y0 - y2) / denom : 0;
+      out.push({ t: times[i] + off * HOUR, h: y1 - 0.25 * (y0 - y2) * off, type: isHigh ? 'high' : 'low' });
+    }
+    return out;
+  }
+
+  // Returns the scraped tide-forecast.com turns plus, when they don't reach far enough ahead, the
+  // Open-Meteo modelled series. pick(from, to) chooses whichever covers that window.
+  async function loadTides(needUntil) {
+    let primary = null, model = null;
+    try {
+      const data = await getJSON('data/tides.json');
+      const ext = data.extremes.map((e) => ({ t: Date.parse(e.t), h: e.h, type: e.type }));
+      if (ext.length >= 4 && Date.now() - Date.parse(data.fetched_at) < CONFIG.tideStaleHours * HOUR) {
+        const at = new Date(data.fetched_at);
+        primary = makeTide(ext, 'above chart datum', `<a href="${esc(data.source)}" target="_blank" rel="noopener">tide-forecast.com</a> — ${esc(data.station)}, fetched ${fmtDay(at)} ${fmtTime(at)}`, false);
+      }
+    } catch (e) { /* fall back to the modelled series */ }
+    if (!primary || !primary.covers(Date.now(), needUntil)) {
+      try {
+        const m = await getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${SPOT.lat}&longitude=${SPOT.lon}&hourly=sea_level_height_msl&timezone=GMT&past_days=1&forecast_days=8&cell_selection=sea`);
+        const ext = extremesFromSeries(m.hourly.time.map((s) => Date.parse(s + 'Z')), m.hourly.sea_level_height_msl);
+        if (ext.length >= 4) model = makeTide(ext, 'vs mean sea level (modelled)', `Modelled sea level from <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener">Open-Meteo Marine</a> (fallback — tide-forecast.com data unavailable for this period). Heights are relative to mean sea level, not chart datum. Cross-check on <a href="https://www.tide-forecast.com/tide/Singapore-Victoria-Dock/tide-times" target="_blank" rel="noopener">tide-forecast.com</a>.`, true);
+      } catch (e) { if (!primary) throw e; }
+    }
+    if (!primary && !model) throw new Error('no tide data');
+    return {
+      pick: (from, to) => [primary, model].find((s) => s && s.covers(from, to)) || null,
+    };
+  }
+
+  const flowFor = (rising) => CONFIG.current[rising ? 'rising' : 'falling'];
+  // State of the tide at time t: direction, progress between turns, and current strength.
+  function tideState(tide, t) {
+    const i = tide.ext.findIndex((e) => e.t > t);
+    const prev = tide.ext[i - 1], next = tide.ext[i];
+    if (!prev || !next) return null;
+    const rising = next.type === 'high';
+    const f = (t - prev.t) / (next.t - prev.t);
+    const range = Math.abs(next.h - prev.h);
+    // Rule of twelfths: flow is weakest near the turn, strongest mid-tide.
+    const phase = f < 1 / 6 || f > 5 / 6 ? 'weak (near slack)' : f < 1 / 3 || f > 2 / 3 ? 'moderate' : 'strongest (mid-tide)';
+    const size = range > CONFIG.springRangeM * 0.8 ? 'big spring range' : range < CONFIG.springRangeM * 0.5 ? 'small neap range' : 'medium range';
+    return { prev, next, rising, f, range, phase, size, flow: flowFor(rising), h: tide.height(t) };
+  }
+
+  // Route plan: push into the current first and ride it home. The flow that matters is the net
+  // flow over each leg (first half / second half), so a tide that turns mid-paddle is accounted for.
+  function routePlan(tide, start, route) {
+    const half = start + route.minutes * 30e3, end = start + route.minutes * 60e3;
+    const [h0, hm, h1] = [tide.height(start), tide.height(half), tide.height(end)];
+    if ([h0, hm, h1].some((v) => v == null)) return null;
+    const out = flowFor(hm >= h0), home = flowFor(h1 >= hm);
+    const turns = tide.ext.filter((e) => e.t > start && e.t < end);
+    return { route, start, half, end, out, home, turns };
+  }
+  const OPPOSITE = { East: 'West', West: 'East' };
+  function routeHtml(p) {
+    const r = p.route;
+    const turns = p.turns.map((e) => `${e.type === 'high' ? 'High' : 'Low'} tide at ${fmtTime(new Date(e.t))} — current swings around.`).join(' ');
+    let lead;
+    if (r.type === 'outback') {
+      // Fixed heading: say whether each leg has the current with or against it.
+      const home = OPPOSITE[r.outbound];
+      const outWith = p.out.withIt === r.outbound, homeWith = p.home.withIt === home;
+      const verdict = !outWith && homeWith ? '✓ Ideal — push out into it, ride it home.'
+        : outWith && !homeWith ? '✗ Hard finish — the current will be against you on the way home.'
+        : outWith ? 'Current with you both ways.' : 'Current against you both ways.';
+      lead = `Out <b>${r.outbound}</b> to ${r.turnPoint} (turn ~${fmtTime(new Date(p.half))}): current ${p.out.label}, <b>${outWith ? 'with' : 'against'}</b> you. ` +
+        `Home <b>${home}</b>: current ${p.home.label}, <b>${homeWith ? 'with' : 'against'}</b> you. ${verdict}`;
+    } else {
+      // Loop: start into the current that will be running in the second half, so you finish with it.
+      const startDir = p.home.againstIt;
+      lead = `Go round heading <b>${startDir}</b> first, into the ${p.home.label} current, so the run home to Siloso is <b>${OPPOSITE[startDir]}</b> with it.` +
+        (p.out !== p.home ? ` The tide turns early on — for the first part the ${p.out.label} current is with you.` : '');
+    }
+    return `<li><strong>${esc(r.name)} · ~${fmtDur(r.minutes * 60e3)}, back ~${fmtTime(new Date(p.end))}</strong>${lead}${turns ? ' ' + turns : ''}</li>`;
+  }
+  const routesFor = (keys) => CONFIG.routes.filter((r) => !keys || keys.includes(r.key));
+
+  let tideNow = null; // shared with the wind section for wind-against-tide
+
+  function renderTides(tides, sessions) {
+    const now = Date.now();
+    const start = sgtMidnight(now), end = start + 3 * DAY;
+    const tide = tides.pick(now - 6 * HOUR, now + 6 * HOUR) || tides.pick(now, now);
+    if (!tide) throw new Error('tide data does not cover now');
+    const s = tideState(tide, now);
+    $('tide-source').innerHTML = `Source: ${tide.source}`;
+    tideNow = s;
+
+    $('tide-state').textContent = s.rising ? '▲ Rising' : '▼ Falling';
+    $('tide-state-sub').textContent = `${Math.round(s.f * 100)}% of the way from ${s.prev.type} to ${s.next.type}`;
+    $('tide-height').textContent = `${s.h.toFixed(2)} m`;
+    $('tide-datum').textContent = tide.datum;
+    $('tide-next').textContent = `${s.next.type === 'high' ? 'High' : 'Low'} ${fmtTime(new Date(s.next.t))}`;
+    $('tide-next-sub').textContent = `in ${fmtDur(s.next.t - now)} · ${s.next.h.toFixed(2)} m`;
+    $('current-dir').textContent = s.flow.label;
+    $('current-strength').textContent = `${s.phase}; ${s.size} (${s.range.toFixed(1)} m)`;
+    $('routes-now').innerHTML = CONFIG.routes.map((r) => routePlan(tide, now, r)).filter(Boolean).map(routeHtml).join('');
+
+    $('tide-table').innerHTML = tide.ext.filter((e) => e.t >= start && e.t < end).map((e) =>
+      `<tr${e === s.next ? ' style="font-weight:700"' : ''}><td>${fmtDay(new Date(e.t))}</td><td>${e.type === 'high' ? 'High' : 'Low'}</td><td class="num">${fmtTime(new Date(e.t))}</td><td class="num">${e.h.toFixed(2)} m</td></tr>`).join('');
+
+    drawTideChart(tide, start, end, now, sessions);
+  }
+
+  function drawTideChart(tide, start, end, now, sessions) {
+    const svg = $('tide-chart');
+    const { ext, height } = tide;
+    const W = 1000, H = 260, pad = { l: 34, r: 8, t: 34, b: 22 };
+    const hs = ext.filter((e) => e.t >= start - 12 * HOUR && e.t <= end + 12 * HOUR).map((e) => e.h);
+    const yMin = Math.floor(Math.min(...hs, 0) * 2) / 2, yMax = Math.ceil(Math.max(...hs) * 2) / 2 + 0.5;
+    const x = (t) => pad.l + (t - start) / (end - start) * (W - pad.l - pad.r);
+    const y = (h) => pad.t + (1 - (h - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+    const parts = [];
+
+    for (let d = start; d < end; d += DAY) {
+      const { rise, set } = sunTimes(d);
+      parts.push(`<rect class="night" x="${x(d)}" y="${pad.t}" width="${x(rise) - x(d)}" height="${H - pad.t - pad.b}"/>`);
+      parts.push(`<rect class="night" x="${x(set)}" y="${pad.t}" width="${x(d + DAY) - x(set)}" height="${H - pad.t - pad.b}"/>`);
+      parts.push(`<text class="day-label" x="${x(d) + 6}" y="14">${fmtDay(new Date(d))}</text>`);
+      if (d > start) parts.push(`<line class="grid-line" x1="${x(d)}" x2="${x(d)}" y1="0" y2="${H - pad.b}"/>`);
+      for (const hh of [6, 12, 18]) parts.push(`<text x="${x(d + hh * HOUR)}" y="${H - 6}" text-anchor="middle">${hh === 12 ? '12pm' : hh < 12 ? hh + 'am' : hh - 12 + 'pm'}</text>`);
+    }
+    for (let h = Math.ceil(yMin); h <= yMax; h++) {
+      parts.push(`<line class="grid-line" x1="${pad.l}" x2="${W - pad.r}" y1="${y(h)}" y2="${y(h)}"/>`);
+      parts.push(`<text x="${pad.l - 6}" y="${y(h) + 4}" text-anchor="end">${h}m</text>`);
+    }
+    for (const s of sessions.filter((s) => s.t >= start && s.t < end)) {
+      parts.push(`<line class="session-line" x1="${x(s.t)}" x2="${x(s.t)}" y1="${pad.t - 12}" y2="${H - pad.b}"/>`);
+      parts.push(`<text class="session-label" x="${x(s.t) + 4}" y="${pad.t - 4}">${esc(s.label)}</text>`);
+    }
+    const pts = [];
+    for (let t = start; t <= end; t += 10 * 60e3) { const h = height(t); if (h != null) pts.push([x(t), y(h)]); }
+    if (pts.length) {
+      const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('');
+      parts.push(`<path class="area" d="${line}L${pts[pts.length - 1][0]},${y(yMin)}L${pts[0][0]},${y(yMin)}Z"/>`);
+      parts.push(`<path class="curve" d="${line}"/>`);
+    }
+    for (const e of ext.filter((e) => e.t >= start && e.t < end)) {
+      parts.push(`<circle class="ext-dot" cx="${x(e.t)}" cy="${y(e.h)}" r="4"/>`);
+      parts.push(`<text class="ext-label" x="${x(e.t)}" y="${y(e.h) + (e.type === 'high' ? -9 : 16)}" text-anchor="middle">${fmtTime(new Date(e.t)).replace(' ', '')} · ${e.h.toFixed(1)}m</text>`);
+    }
+    if (height(now) != null) {
+      parts.push(`<line class="now-line" x1="${x(now)}" x2="${x(now)}" y1="${pad.t - 10}" y2="${H - pad.b}"/>`);
+      parts.push(`<circle class="now-dot" cx="${x(now)}" cy="${y(height(now))}" r="6"/>`);
+    }
+    parts.push(`<line class="hover-line" id="tide-hover" x1="0" x2="0" y1="${pad.t}" y2="${H - pad.b}" visibility="hidden"/>`);
+    parts.push(`<rect id="tide-hit" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent"/>`);
+    svg.querySelectorAll(':scope > :not(title)').forEach((n) => n.remove());
+    svg.insertAdjacentHTML('beforeend', parts.join(''));
+
+    const hit = $('tide-hit'), tip = $('tide-tip'), hover = $('tide-hover');
+    hit.addEventListener('pointermove', (ev) => {
+      const r = svg.getBoundingClientRect();
+      const sx = (ev.clientX - r.left) / r.width * W;
+      const t = start + (sx - pad.l) / (W - pad.l - pad.r) * (end - start);
+      const h = height(t);
+      if (h == null) return;
+      hover.setAttribute('x1', sx); hover.setAttribute('x2', sx); hover.setAttribute('visibility', 'visible');
+      tip.style.display = 'block';
+      tip.style.left = `${ev.clientX - r.left - svg.parentElement.scrollLeft}px`;
+      tip.style.top = `${y(h) / H * r.height}px`;
+      tip.textContent = `${fmtDay(new Date(t))} ${fmtTime(new Date(t))} · ${h.toFixed(2)} m`;
+    });
+    hit.addEventListener('pointerleave', () => { tip.style.display = 'none'; hover.setAttribute('visibility', 'hidden'); });
+  }
+
+  // Small tide curve around a session: shaded bands show the session's paddle window(s).
+  function miniTideChart(tide, t0, routes) {
+    const from = t0 - HOUR, to = t0 + 4 * HOUR;
+    const W = 340, H = 120, pad = { l: 8, r: 8, t: 20, b: 18 };
+    const pts = [];
+    for (let t = from; t <= to; t += 5 * 60e3) { const h = tide.height(t); if (h != null) pts.push([t, h]); }
+    if (pts.length < 2) return '';
+    const hs = pts.map((p) => p[1]);
+    const yMin = Math.min(...hs) - 0.25, yMax = Math.max(...hs) + 0.35;
+    const x = (t) => pad.l + (t - from) / (to - from) * (W - pad.l - pad.r);
+    const y = (h) => pad.t + (1 - (h - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+    const parts = [];
+    for (const r of [...routes].sort((a, b) => b.minutes - a.minutes)) {
+      parts.push(`<rect class="route-${r.key}" x="${x(t0)}" y="${pad.t}" width="${x(t0 + r.minutes * 60e3) - x(t0)}" height="${H - pad.t - pad.b}"/>`);
+      if (r.type === 'outback') parts.push(`<line class="grid-line" x1="${x(t0 + r.minutes * 30e3)}" x2="${x(t0 + r.minutes * 30e3)}" y1="${pad.t}" y2="${H - pad.b}" stroke-dasharray="3 3"/>`);
+    }
+    for (let t = Math.ceil(from / HOUR) * HOUR; t <= to; t += HOUR) {
+      if (x(t) < 18 || x(t) > W - 18) continue;
+      parts.push(`<text x="${x(t)}" y="${H - 4}" text-anchor="middle">${fmtTime(new Date(t)).replace(':00', '').replace(' ', '')}</text>`);
+    }
+    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
+    parts.push(`<path class="area" d="${line}L${x(to)},${H - pad.b}L${x(from)},${H - pad.b}Z"/>`);
+    parts.push(`<path class="curve" d="${line}"/>`);
+    parts.push(`<line class="start-line" x1="${x(t0)}" x2="${x(t0)}" y1="${pad.t - 6}" y2="${H - pad.b}"/>`);
+    for (const e of tide.ext.filter((e) => e.t > from && e.t < to)) {
+      const label = `${e.type === 'high' ? 'High' : 'Low'} ${fmtTime(new Date(e.t)).replace(' ', '')}`;
+      const anchor = x(e.t) > W - 50 ? 'end' : x(e.t) < 50 ? 'start' : 'middle';
+      parts.push(`<circle class="ext-dot" cx="${x(e.t)}" cy="${y(e.h)}" r="4"><title>${label} · ${e.h.toFixed(2)} m</title></circle>`);
+      parts.push(`<text class="ext-label" x="${x(e.t)}" y="${e.type === 'high' ? y(e.h) - 8 : y(e.h) + 15}" text-anchor="${anchor}">${label}</text>`);
+    }
+    return `<svg class="tide-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tide from ${fmtTime(new Date(from))} to ${fmtTime(new Date(to))}">${parts.join('')}</svg>
+      <div class="legend">${routes.map((r) => `<span class="l-${r.key}">${esc(r.name)}${r.type === 'outback' ? ' (dashed = turnaround)' : ''}</span>`).join('')}</div>`;
+  }
+
+  // ---------- NEA station data (data.gov.sg v2, tolerant of the v1 shape) ----------
+  function stationReadings(json) {
+    const d = json.data || json;
+    const stations = d.stations || (d.metadata && d.metadata.stations) || [];
+    const latest = (d.readings || d.items || [])[0] || {};
+    const values = latest.data || latest.readings || [];
+    return {
+      time: latest.timestamp ? new Date(latest.timestamp) : null,
+      list: values.map((v) => {
+        const s = stations.find((st) => st.id === (v.stationId || v.station_id)) || {};
+        const loc = s.location || {};
+        return { name: s.name || v.stationId, value: v.value, km: distKm(SPOT.lat, SPOT.lon, loc.latitude, loc.longitude) };
+      }).filter((s) => Number.isFinite(s.km)).sort((a, b) => a.km - b.km),
+    };
+  }
+
+  // ---------- Weather forecast (Open-Meteo, hourly for the next 9 days) ----------
+  const weatherUrl = () => `https://api.open-meteo.com/v1/forecast?latitude=${SPOT.lat}&longitude=${SPOT.lon}` +
+    `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m` +
+    `&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability,weather_code` +
+    `&wind_speed_unit=kn&timezone=GMT&forecast_days=9`;
+  function hourlyRows(wx, from, to) {
+    const h = wx.hourly;
+    return h.time.map((s, i) => ({
+      t: Date.parse(s + 'Z'), speed: h.wind_speed_10m[i], gust: h.wind_gusts_10m[i], dir: h.wind_direction_10m[i],
+      pop: h.precipitation_probability[i], code: h.weather_code ? h.weather_code[i] : null,
+    })).filter((r) => r.t >= from && r.t <= to);
+  }
+
+  // ---------- Wind (info only — no club wind limit) ----------
+  async function renderWind(wxResult) {
+    const [spd, dir] = await Promise.allSettled([getJSON(`${API}/wind-speed`), getJSON(`${API}/wind-direction`)]);
+    if (wxResult.status === 'fulfilled') {
+      const wx = wxResult.value, c = wx.current;
+      $('wind-speed').textContent = `${Math.round(c.wind_speed_10m)} kt`;
+      $('wind-gust').textContent = `gusting ${Math.round(c.wind_gusts_10m)} kt`;
+      $('wind-dir').innerHTML = `${arrowFor(c.wind_direction_10m)} ${compass(c.wind_direction_10m)}`;
+      const nowHr = Math.floor(Date.now() / HOUR) * HOUR;
+      $('wind-table').innerHTML = hourlyRows(wx, nowHr, nowHr + 6 * HOUR).map((r) => `<tr><td>${fmtTime(new Date(r.t))}</td><td class="num">${Math.round(r.speed)} kt</td><td class="num">${Math.round(r.gust)} kt</td><td>${arrowFor(r.dir)} ${compass(r.dir)}</td><td class="num">${r.pop ?? '—'}%</td></tr>`).join('');
+      if (tideNow) $('wind-vs-tide').textContent = windVsTide(c.wind_direction_10m, c.wind_speed_10m, tideNow.flow);
+    } else {
+      $('wind-gust').innerHTML = `<span class="err">Forecast unavailable (${esc(wxResult.reason.message)})</span>`;
+    }
+    if (spd.status === 'fulfilled') {
+      const s = stationReadings(spd.value).list[0];
+      const d = dir.status === 'fulfilled' ? stationReadings(dir.value).list.find((x) => x.name === s?.name) : null;
+      if (s) {
+        $('wind-obs').innerHTML = `${Math.round(s.value)} kt${d ? ` ${arrowFor(d.value)}` : ''}`;
+        $('wind-obs-sub').textContent = `${s.name}, ${s.km.toFixed(1)} km away${d ? ` · from ${compass(d.value)}` : ''}`;
+      }
+    } else $('wind-obs-sub').textContent = 'unavailable';
+  }
+  function windVsTide(fromDeg, speedKt, flow) {
+    if (speedKt < 8) return 'Light — little effect on the water';
+    const diff = Math.abs((((fromDeg + 180) % 360 - flow.flowsTo + 540) % 360) - 180);
+    return diff > 120 ? 'Wind against tide — choppy' : diff < 60 ? 'Wind with the tide' : 'Wind across the tide';
+  }
+
+  // ---------- Haze (club rule: no paddling above 24-hr PSI 120) ----------
+  const psiBand = (v) => v <= 50 ? 'Good' : v <= 100 ? 'Moderate' : v <= 200 ? 'Unhealthy' : v <= 300 ? 'Very unhealthy' : 'Hazardous';
+  const pm25Band = (v) => v <= 55 ? 'Band I (normal)' : v <= 150 ? 'Band II (elevated)' : v <= 250 ? 'Band III (high)' : 'Band IV (very high)';
+  async function loadHaze() {
+    try {
+      const j = await getJSON(`${API}/psi`);
+      const item = (j.data || j).items[0];
+      const r = item.readings;
+      const psi = r.psi_twenty_four_hourly.south, pm = r.pm25_one_hourly?.south;
+      $('psi').textContent = psi;
+      $('psi-band').textContent = psiBand(psi);
+      $('pm25').textContent = pm ?? '—';
+      $('pm25-band').textContent = pm != null ? `${pm25Band(pm)} µg/m³` : '';
+      $('haze-time').textContent = `Updated ${fmtTime(new Date(item.updatedTimestamp || item.update_timestamp || item.timestamp))}`;
+      if (psi > CONFIG.psi.hold) setStatus('haze', 'haze-badge', 'hold', [`Haze: 24-hr PSI ${psi} in the south — above the club limit of ${CONFIG.psi.hold}.`]);
+      else if (psi > CONFIG.psi.caution) setStatus('haze', 'haze-badge', 'caution', [`Haze: 24-hr PSI ${psi} — under the club limit of ${CONFIG.psi.hold}, but close.`]);
+      else setStatus('haze', 'haze-badge', 'go', [`Haze: 24-hr PSI ${psi} (${psiBand(psi).toLowerCase()}) — under the club limit of ${CONFIG.psi.hold}.`]);
+    } catch (e) {
+      $('psi-band').innerHTML = `<span class="err">Unavailable (${esc(e.message)})</span>`;
+      setStatus('haze', 'haze-badge', 'unknown', ['Haze data unavailable — check haze.gov.sg.']);
+    }
+  }
+
+  // ---------- CAT 1: lightning, 2-hr forecast & rain ----------
+  // Pulls any {lat, lon, time} records out of the lightning payload without relying on exact nesting.
+  function lightningStrikes(json) {
+    const out = [];
+    (function walk(o) {
+      if (!o || typeof o !== 'object') return;
+      if (Array.isArray(o)) return o.forEach(walk);
+      const loc = o.location || o;
+      const lat = parseFloat(loc.latitude ?? loc.lat), lon = parseFloat(loc.longitude ?? loc.lon ?? loc.lng);
+      const when = o.datetime || o.timestamp || o.time;
+      if (Number.isFinite(lat) && Number.isFinite(lon) && when && o !== json) {
+        const type = `${o.type || ''} ${o.text || ''}`.trim();
+        // Cloud-to-ground strikes trigger CAT 1; unlabelled strikes are treated as ground strikes.
+        const ground = !type || /ground|^G\b/i.test(type);
+        out.push({ lat, lon, t: Date.parse(when), ground });
+        return;
+      }
+      Object.values(o).forEach(walk);
+    })(json);
+    return out;
+  }
+  const CAT1_FALLBACK_AREAS = ['Sentosa', 'Bukit Merah', 'Southern Islands'];
+
+  let strikeLayer = null;
+  async function loadRain() {
+    const [lt, nc, rf] = await Promise.allSettled([
+      getJSON(`${API}/weather?api=lightning`), getJSON(`${API}/two-hr-forecast`), getJSON(`${API}/rainfall`),
+    ]);
+    const { radiusKm, strikeWindowMin, watchKm } = CONFIG.cat1;
+    const reasons = [];
+    let level = 'go', cat1 = false;
+    const bump = (l) => { if (LEVEL_RANK[l] > LEVEL_RANK[level]) level = l; };
+
+    if (lt.status === 'fulfilled') {
+      const cutoff = Date.now() - strikeWindowMin * 60e3;
+      const strikes = lightningStrikes(lt.value).filter((s) => s.t >= cutoff)
+        .map((s) => ({ ...s, km: distKm(SPOT.lat, SPOT.lon, s.lat, s.lon) })).sort((a, b) => a.km - b.km);
+      const inRing = strikes.filter((s) => s.km <= radiusKm);
+      const groundInRing = inRing.filter((s) => s.ground);
+      const watch = strikes.filter((s) => s.km <= watchKm);
+      if (!strikes.length) {
+        $('lightning').textContent = 'None';
+        $('lightning-sub').textContent = 'no strikes recorded over Singapore';
+      } else {
+        $('lightning').textContent = inRing.length ? `${inRing.length} within ${radiusKm} km` : `Closest ${strikes[0].km.toFixed(0)} km`;
+        $('lightning-sub').textContent = `closest ${strikes[0].km.toFixed(1)} km at ${fmtTime(new Date(strikes[0].t))} · ${strikes.length} across Singapore`;
+      }
+      if (groundInRing.length) {
+        cat1 = true;
+        const last = Math.max(...groundInRing.map((s) => s.t));
+        bump('hold');
+        reasons.push(`<b>CAT 1:</b> lightning ${groundInRing[0].km.toFixed(1)} km from Siloso at ${fmtTime(new Date(groundInRing[0].t))}. Earliest all-clear ${fmtTime(new Date(last + strikeWindowMin * 60e3))} if there are no further strikes.`);
+      } else if (inRing.length) {
+        bump('caution');
+        reasons.push(`Cloud lightning within ${radiusKm} km — CAT 1 likely imminent.`);
+      } else if (watch.length) {
+        bump('caution');
+        reasons.push(`Lightning ${watch[0].km.toFixed(1)} km away — outside the ${radiusKm} km CAT 1 ring, but keep watching.`);
+      } else reasons.push(`No lightning within ${watchKm} km of Siloso in the last ${strikeWindowMin} min.`);
+      if (window.L && radar.map) {
+        if (strikeLayer) strikeLayer.remove();
+        strikeLayer = L.layerGroup(strikes.map((s) => L.circleMarker([s.lat, s.lon], { radius: 5, color: '#d03b3b', weight: 2, fillColor: '#fab219', fillOpacity: 0.9 })
+          .bindTooltip(`⚡ ${fmtTime(new Date(s.t))} · ${s.km.toFixed(1)} km${s.ground ? '' : ' (cloud)'}`))).addTo(radar.map);
+      }
+    } else {
+      bump('unknown');
+      $('lightning-sub').innerHTML = `<span class="err">Unavailable (${esc(lt.reason.message)})</span>`;
+      reasons.push('Lightning data unavailable — check the myENV app before launching.');
+    }
+
+    if (nc.status === 'fulfilled') {
+      const d = nc.value.data || nc.value;
+      const item = d.items[0];
+      const text = (f) => (typeof f.forecast === 'string' ? f.forecast : f.forecast?.text) || '—';
+      const meta = Object.fromEntries((d.area_metadata || []).map((a) => [a.name, a.label_location]));
+      const areas = item.forecasts.map((f) => {
+        const loc = meta[f.area];
+        return { area: f.area, text: text(f), km: loc ? distKm(SPOT.lat, SPOT.lon, loc.latitude, loc.longitude) : null };
+      });
+      const near = areas.filter((a) => (a.km != null ? a.km <= radiusKm : CAT1_FALLBACK_AREAS.includes(a.area)));
+      const watchAreas = areas.filter((a) => a.km != null && a.km <= watchKm).sort((a, b) => a.km - b.km);
+      const sentosa = areas.find((a) => a.area === 'Sentosa');
+      const vp = item.valid_period || {};
+      $('nowcast').textContent = sentosa ? sentosa.text : '—';
+      $('nowcast-sub').textContent = vp.text || (vp.start ? `${fmtTime(new Date(vp.start))} – ${fmtTime(new Date(vp.end))}` : '');
+      $('nowcast-table').innerHTML = (watchAreas.length ? watchAreas : near).map((a) =>
+        `<tr${near.includes(a) ? ' style="font-weight:600"' : ''}><td>${esc(a.area)}</td><td class="num">${a.km != null ? a.km.toFixed(1) + ' km' : '—'}</td><td>${esc(a.text)}</td></tr>`).join('');
+      const cat1Area = near.find((a) => /thunder|heavy/i.test(a.text));
+      if (cat1Area) {
+        cat1 = true;
+        bump('hold');
+        reasons.push(`<b>CAT 1:</b> NEA forecasts ${esc(cat1Area.text.toLowerCase())} for ${esc(cat1Area.area)} (within ${radiusKm} km) in the next 2 hrs.`);
+      } else if (watchAreas.some((a) => /thunder/i.test(a.text))) {
+        bump('caution');
+        reasons.push(`Thundery showers forecast within ${watchKm} km in the next 2 hrs — CAT 1 could be called.`);
+      } else if (sentosa) reasons.push(`Next 2 hrs at Sentosa: ${esc(sentosa.text.toLowerCase())}.`);
+    } else {
+      bump('unknown');
+      $('nowcast-sub').innerHTML = `<span class="err">Unavailable (${esc(nc.reason.message)})</span>`;
+      reasons.push('NEA 2-hr forecast unavailable — check the myENV app.');
+    }
+
+    if (rf.status === 'fulfilled') {
+      const { list, time } = stationReadings(rf.value);
+      const s = list[0];
+      if (s) {
+        $('rain-now').textContent = `${s.value} mm`;
+        $('rain-now-sub').textContent = `${s.name}, ${s.km.toFixed(1)} km · 5 min to ${time ? fmtTime(time) : '—'}`;
+      }
+    } else $('rain-now-sub').textContent = 'unavailable';
+
+    setStatus('rain', 'rain-badge', level, reasons, cat1 ? 'CAT 1' : undefined);
+  }
+
+  // ---------- Radar (NEA 70 km rain-area images, 5-minute frames) ----------
+  const radar = { map: null, overlay: null, frames: [], idx: 0, hold: 0, timer: null, playing: !prefersReducedMotion };
+  const RADAR_BOUNDS = [[1.1450, 103.565], [1.4572, 104.130]];
+  const radarUrl = (ms) => {
+    const d = new Date(ms + 8 * HOUR);
+    const p = (n) => String(n).padStart(2, '0');
+    return `https://www.weather.gov.sg/files/rainarea/50km/v2/dpsri_70km_${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}${p(d.getUTCHours())}${p(d.getUTCMinutes())}0000dBR.dpsri.png`;
+  };
+  const probe = (src) => new Promise((resolve) => { const i = new Image(); i.onload = () => resolve(true); i.onerror = () => resolve(false); i.src = src; });
+
+  function initMap() {
+    if (!window.L || radar.map) return;
+    radar.map = L.map('radar-map', { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([1.262, 103.83], 11);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15, attribution: '© OpenStreetMap · Radar © NEA' }).addTo(radar.map);
+    L.circle([SPOT.lat, SPOT.lon], { radius: CONFIG.cat1.radiusKm * 1000, color: '#d03b3b', weight: 1.5, fill: false, dashArray: '5 5' }).addTo(radar.map);
+    L.circleMarker([SPOT.lat, SPOT.lon], { radius: 7, color: '#ffffff', weight: 2, fillColor: '#0f3d2e', fillOpacity: 1 }).addTo(radar.map).bindTooltip(SPOT.name, { permanent: true, direction: 'left' });
+    const wm = CONFIG.whiteMarker;
+    L.circleMarker([wm.lat, wm.lon], { radius: 6, color: '#0f3d2e', weight: 2, fillColor: '#ffffff', fillOpacity: 1 }).addTo(radar.map).bindTooltip('White Marker', { permanent: true, direction: 'right' });
+  }
+
+  async function loadRadar() {
+    const step = 5 * 60e3, latest = Math.floor(Date.now() / step) * step;
+    const candidates = Array.from({ length: 16 }, (_, i) => latest - i * step);
+    const ok = await Promise.all(candidates.map((t) => probe(radarUrl(t))));
+    radar.frames = candidates.filter((_, i) => ok[i]).slice(0, 12).reverse();
+    if (!radar.frames.length) { $('radar-time').innerHTML = 'Radar images unavailable — <a href="https://www.nea.gov.sg/weather/rain-areas" target="_blank" rel="noopener">open NEA rain areas</a>'; return; }
+    $('radar-frame').max = radar.frames.length - 1;
+    showFrame(radar.frames.length - 1);
+    if (radar.playing) playRadar();
+  }
+  function showFrame(i) {
+    radar.idx = i;
+    const t = radar.frames[i], src = radarUrl(t);
+    $('radar-frame').value = i;
+    $('radar-time').textContent = `${fmtTime(new Date(t))}${i === radar.frames.length - 1 ? ' (latest)' : ''}`;
+    if (window.L && radar.map) {
+      if (radar.overlay) radar.overlay.setUrl(src);
+      else radar.overlay = L.imageOverlay(src, RADAR_BOUNDS, { opacity: 0.7 }).addTo(radar.map);
+    } else {
+      $('radar-map').innerHTML = `<img src="${src}" alt="NEA rain radar" style="width:100%;height:100%;object-fit:contain">`;
+    }
+  }
+  function playRadar() {
+    clearInterval(radar.timer);
+    radar.playing = true;
+    $('radar-play').textContent = 'Pause';
+    radar.timer = setInterval(() => {
+      // Hold on the latest frame for a couple of beats before looping.
+      if (radar.idx < radar.frames.length - 1) return showFrame(radar.idx + 1);
+      if (++radar.hold > 2) { radar.hold = 0; showFrame(0); }
+    }, 600);
+  }
+  function pauseRadar() { clearInterval(radar.timer); radar.playing = false; $('radar-play').textContent = 'Play'; }
+  $('radar-play').addEventListener('click', () => (radar.playing ? pauseRadar() : playRadar()));
+  $('radar-frame').addEventListener('input', (e) => { pauseRadar(); showFrame(+e.target.value); });
+  if (!radar.playing) $('radar-play').textContent = 'Play';
+
+  // ---------- Windy embed (loaded only when opened) ----------
+  $('windy-details').addEventListener('toggle', (e) => {
+    const f = $('windy-frame');
+    if (e.target.open && !f.src) {
+      f.src = `https://embed.windy.com/embed2.html?lat=${SPOT.lat}&lon=${SPOT.lon}&detailLat=${SPOT.lat}&detailLon=${SPOT.lon}&zoom=11&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=true&metricWind=kt&metricTemp=%C2%B0C&radarRange=-1`;
+    }
+  });
+
+  // ---------- Upcoming session forecasts ----------
+  // NEA 4-day outlook: pulls {date, text} pairs out of the payload without relying on exact nesting.
+  function outlookByDate(json) {
+    const out = {};
+    (function walk(o) {
+      if (!o || typeof o !== 'object') return;
+      if (Array.isArray(o)) return o.forEach(walk);
+      const when = o.timestamp || o.date;
+      const f = o.forecast;
+      const text = typeof f === 'string' ? f : f && (f.text || f.summary);
+      if (when && text) { out[sgtDate(Date.parse(when.length === 10 ? when + 'T12:00:00+08:00' : when))] = text; return; }
+      Object.values(o).forEach(walk);
+    })(json);
+    return out;
+  }
+  const WMO_TEXT = (c) => c >= 95 ? 'thunderstorms' : c >= 80 ? 'showers' : c >= 61 ? 'rain' : c >= 51 ? 'drizzle' : c >= 45 ? 'fog' : c >= 2 ? 'cloudy' : 'clear';
+
+  function renderSessionShells(sessions, now) {
+    $('jump').innerHTML = `<a href="#now"><span class="dot" id="jump-now-dot" data-level="${$('verdict').dataset.level}"></span>Right now</a>` +
+      sessions.map((s) => `<a href="#${s.id}"><span class="dot" id="${s.id}-dot"></span>${esc(s.label)}</a>`).join('');
+    $('session-grid').innerHTML = sessions.map((s) => `
+      <section class="card" id="${s.id}" aria-labelledby="${s.id}-h">
+        <div class="card-head">
+          <h3 id="${s.id}-h">${fmtDay(new Date(s.t))} · ${fmtTime(new Date(s.t))} <span class="muted" style="font-size:0.95rem">${relDay(s.t, now)}</span></h3>
+          <span class="badge" id="${s.id}-badge" data-level="unknown">…</span>
+        </div>
+        <div class="stats" id="${s.id}-stats"><div class="muted">Loading forecast…</div></div>
+        <ul class="routes" id="${s.id}-routes"></ul>
+        <div id="${s.id}-chart"></div>
+        <p class="note" id="${s.id}-note"></p>
+      </section>`).join('');
+  }
+
+  function renderSession(s, tides, wx, outlook) {
+    const routes = routesFor(s.routes);
+    const longest = Math.max(...routes.map((r) => r.minutes)) * 60e3;
+    const stats = [], notes = [];
+    let level = 'go', badge = 'Looks OK';
+
+    const tide = tides && tides.pick(s.t - HOUR, s.t + longest + HOUR);
+    if (tide) {
+      const st = tideState(tide, s.t);
+      stats.push(`<div><div class="stat-label">Tide at start</div><div class="stat-value sm">${st.rising ? '▲ Rising' : '▼ Falling'}</div><div class="stat-sub">${st.h.toFixed(2)} m · ${st.next.type} ${fmtTime(new Date(st.next.t))}</div></div>`);
+      stats.push(`<div><div class="stat-label">Current at start</div><div class="stat-value sm">${st.flow.label}</div><div class="stat-sub">${st.phase}; ${st.size}</div></div>`);
+      $(`${s.id}-routes`).innerHTML = routes.map((r) => routePlan(tide, s.t, r)).filter(Boolean).map(routeHtml).join('');
+      $(`${s.id}-chart`).innerHTML = miniTideChart(tide, s.t, routes);
+      if (tide.modelled) notes.push('Tide is modelled (Open-Meteo) — tide-forecast.com data doesn\'t reach this far ahead yet.');
+    } else {
+      stats.push('<div><div class="stat-label">Tide</div><div class="stat-value sm">—</div><div class="stat-sub">not available yet</div></div>');
+    }
+
+    const rows = wx ? hourlyRows(wx, s.t, s.t + longest) : [];
+    if (rows.length) {
+      const r0 = rows[0];
+      const pop = Math.max(...rows.map((r) => r.pop ?? 0));
+      const worstCode = Math.max(...rows.map((r) => r.code ?? 0));
+      stats.push(`<div><div class="stat-label">Wind</div><div class="stat-value sm">${Math.round(r0.speed)} kt ${arrowFor(r0.dir)} ${compass(r0.dir)}</div><div class="stat-sub">gusting ${Math.round(r0.gust)} kt</div></div>`);
+      stats.push(`<div><div class="stat-label">Rain chance</div><div class="stat-value sm">${pop}%</div><div class="stat-sub">${WMO_TEXT(worstCode)} in forecast</div></div>`);
+      if (worstCode >= 95) { level = 'caution'; badge = 'Thunder risk'; }
+      else if (pop >= 60) { level = 'caution'; badge = 'Rain likely'; }
+    } else {
+      stats.push('<div><div class="stat-label">Weather</div><div class="stat-value sm">—</div><div class="stat-sub">forecast unavailable</div></div>');
+      level = 'unknown'; badge = 'No forecast';
+    }
+
+    const nea = outlook && outlook[sgtDate(s.t)];
+    if (nea) {
+      notes.unshift(`NEA outlook for ${fmtDay(new Date(s.t))}: ${esc(nea)}.`);
+      if (/thunder/i.test(nea) && level === 'go') { level = 'caution'; badge = 'Thunder risk'; }
+    }
+    notes.push('CAT 1 and haze are only called on the day — check Right now before launching.');
+
+    $(`${s.id}-stats`).innerHTML = stats.join('');
+    $(`${s.id}-note`).innerHTML = notes.join(' ');
+    const b = $(`${s.id}-badge`);
+    b.dataset.level = level;
+    b.textContent = badge;
+    $(`${s.id}-dot`).dataset.level = level;
+  }
+
+  // ---------- Load everything ----------
+  async function loadAll() {
+    $('refresh').disabled = true;
+    initMap();
+    const now = Date.now();
+    const sessions = upcomingSessions(now);
+    const longest = Math.max(...CONFIG.routes.map((r) => r.minutes)) * 60e3;
+    renderSessionShells(sessions, now);
+
+    const tidesP = loadTides(sessions.length ? sessions[sessions.length - 1].t + longest + HOUR : now + DAY);
+    const wxP = getJSON(weatherUrl());
+    const outlookP = getJSON(`${API}/four-day-outlook`).then(outlookByDate);
+
+    const tideNowP = tidesP.then((t) => renderTides(t, sessions)).catch((e) => {
+      $('tide-state-sub').innerHTML = `<span class="err">Tide data unavailable (${esc(e.message)})</span>`;
+      $('tide-source').innerHTML = 'Check <a href="https://www.tide-forecast.com/tide/Singapore-Victoria-Dock/tide-times" target="_blank" rel="noopener">tide-forecast.com</a> directly.';
+    });
+    const sessionsP = Promise.allSettled([tidesP, wxP, outlookP]).then(([t, w, o]) => {
+      for (const s of sessions) {
+        try { renderSession(s, t.value, w.value, o.value); }
+        catch (e) { $(`${s.id}-stats`).innerHTML = `<span class="err">Forecast unavailable (${esc(e.message)})</span>`; }
+      }
+    });
+    // Wind waits for the tide so it can describe wind-against-tide.
+    const windP = Promise.allSettled([wxP, tideNowP]).then(([w]) => renderWind(w));
+
+    await Promise.allSettled([tideNowP, sessionsP, windP, loadHaze(), loadRain(), loadRadar()]);
+    $('updated').textContent = `Updated ${fmtTime(new Date())}`;
+    $('refresh').disabled = false;
+  }
+  $('refresh').addEventListener('click', loadAll);
+  loadAll();
+  setInterval(() => { if (!document.hidden) loadAll(); }, CONFIG.refreshMs);
+})();
+</script>
+</body>
+</html>

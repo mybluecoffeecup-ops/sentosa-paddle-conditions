@@ -16,6 +16,15 @@ A pre-paddle conditions quick reference for Austcham Paddle Club crews launching
 - **Verdict:** only CAT 1 and haze affect Go/Hold. Wind and tide are info only.
 - **Route plans** (`routePlan` / `routeHtml`) use the net current over each half of the paddle. The rule is to push into the current first and ride it home.
 
+## Design
+
+The look is borrowed from an Admiralty nautical chart, and the tokens at the top of the `<style>` block define it:
+
+- **Palette:** sea-white paper, shoal blue and chart buff for fills, sounding blue for the tide curve, and chart magenta for markings ("now", the CAT 1 ring, the turnaround, focus). Dark mode is a dimmed night-chart palette.
+- **Type:** Spectral italic for headings, following the chart convention of italic names for water features. Atkinson Hyperlegible Next is the body face, for reading on a phone in sun. Atkinson Hyperlegible Mono is used for numbers.
+- **Status:** shown as square stamped tags where the word carries the meaning (OK, Watch, Hold, CAT 1). There are no coloured dots or pills.
+- **Copy:** write UI text plainly, the way a crew captain would say it: short sentences, no em-dashes, no emoji.
+
 ## Verifying changes
 
 There is no test suite. Serve the folder (`python3 -m http.server`) and check the following in a browser at ~375px and desktop widths, in light and dark mode:

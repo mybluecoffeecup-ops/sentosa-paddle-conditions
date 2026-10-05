@@ -310,34 +310,6 @@
       <p class="fine">Club rules: no paddling in CAT 1, or when the 24-hour PSI is over 120. We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
     </div>
 
-    <!-- Lightning & rain -->
-    <section class="block" id="rain-card" aria-labelledby="rain-h">
-      <div class="block-head">
-        <h2 id="rain-h">Lightning and rain</h2>
-        <span class="tag" id="rain-badge" data-level="unknown">…</span>
-      </div>
-      <div class="stats">
-        <div><div class="label">Lightning, last 30 min</div><div class="value words" id="lightning">–</div><div class="sub" id="lightning-sub"></div></div>
-        <div><div class="label">Sentosa, next 2 hours</div><div class="value words" id="nowcast">–</div><div class="sub" id="nowcast-sub"></div></div>
-        <div><div class="label">Rain now</div><div class="value" id="rain-now">–</div><div class="sub" id="rain-now-sub"></div></div>
-      </div>
-      <div class="scroll-x">
-        <table>
-          <thead><tr><th>NEA area</th><th>From Siloso</th><th>Next 2 hours</th></tr></thead>
-          <tbody id="nowcast-table"></tbody>
-        </table>
-      </div>
-      <div style="margin-top:16px">
-        <div id="radar-map" role="img" aria-label="Rain radar over southern Singapore, with recent lightning and the 6 km ring around Siloso"></div>
-        <div class="radar-controls">
-          <button type="button" id="radar-play">Pause</button>
-          <input type="range" id="radar-frame" min="0" max="0" value="0" aria-label="Radar frame">
-          <span id="radar-time" class="data muted">Loading radar…</span>
-        </div>
-      </div>
-      <p class="source">The dashed ring is 6 km around Siloso. Radar from <a href="https://www.nea.gov.sg/weather/rain-areas" target="_blank" rel="noopener">NEA rain areas</a>; forecasts, lightning and rain gauges from NEA via <a href="https://data.gov.sg/" target="_blank" rel="noopener">data.gov.sg</a>.</p>
-    </section>
-
     <div class="pair">
       <!-- Haze -->
       <section class="block" id="haze-card" aria-labelledby="haze-h">
@@ -409,6 +381,34 @@
         </div>
       </details>
       <p class="source" id="tide-source"></p>
+    </section>
+
+    <!-- Lightning & rain -->
+    <section class="block" id="rain-card" aria-labelledby="rain-h">
+      <div class="block-head">
+        <h2 id="rain-h">Lightning and rain</h2>
+        <span class="tag" id="rain-badge" data-level="unknown">…</span>
+      </div>
+      <div class="stats">
+        <div><div class="label">Lightning, last 30 min</div><div class="value words" id="lightning">–</div><div class="sub" id="lightning-sub"></div></div>
+        <div><div class="label">Sentosa, next 2 hours</div><div class="value words" id="nowcast">–</div><div class="sub" id="nowcast-sub"></div></div>
+        <div><div class="label">Rain now</div><div class="value" id="rain-now">–</div><div class="sub" id="rain-now-sub"></div></div>
+      </div>
+      <div class="scroll-x">
+        <table>
+          <thead><tr><th>NEA area</th><th>From Siloso</th><th>Next 2 hours</th></tr></thead>
+          <tbody id="nowcast-table"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px">
+        <div id="radar-map" role="img" aria-label="Rain radar over southern Singapore, with recent lightning and the 6 km ring around Siloso"></div>
+        <div class="radar-controls">
+          <button type="button" id="radar-play">Pause</button>
+          <input type="range" id="radar-frame" min="0" max="0" value="0" aria-label="Radar frame">
+          <span id="radar-time" class="data muted">Loading radar…</span>
+        </div>
+      </div>
+      <p class="source">The dashed ring is 6 km around Siloso. Radar from <a href="https://www.nea.gov.sg/weather/rain-areas" target="_blank" rel="noopener">NEA rain areas</a>; forecasts, lightning and rain gauges from NEA via <a href="https://data.gov.sg/" target="_blank" rel="noopener">data.gov.sg</a>.</p>
     </section>
   </section>
 

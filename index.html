@@ -231,6 +231,7 @@
   .value.words { font-family: var(--font-body); font-size: 1.25rem; font-weight: 700; }
   .sub { font-size: 0.84rem; color: var(--ink-2); margin-top: 2px; }
   .arrow { display: inline-block; font-family: var(--font-body); }
+  .kt { font-size: 0.72em; font-weight: 400; color: var(--ink-2); white-space: nowrap; }
 
   .routes { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
   .routes li { border-left: 3px solid var(--land); padding: 2px 0 2px 12px; max-width: 72ch; }
@@ -349,10 +350,14 @@
 
     <!-- At a glance: four panes -->
     <section class="glance" id="glance" aria-label="At a glance">
-      <div class="q" id="q-radar">
-        <div class="q-head"><a class="q-title" href="#rain-card">Rain and lightning</a><span class="tag" id="q-radar-tag" data-level="unknown">…</span></div>
-        <div class="glance-map" id="glance-map" role="img" aria-label="Latest rain radar around Sentosa with recent lightning"></div>
-        <p class="q-line" id="q-radar-line">Loading…</p>
+      <div class="q" id="q-tide">
+        <div class="q-head"><a class="q-title" href="#tide-card">Tide and current</a></div>
+        <div>
+          <div class="q-big words" id="q-tide-state">–</div>
+          <div class="q-sub" id="q-tide-sub"></div>
+        </div>
+        <div id="q-tide-chart"></div>
+        <p class="q-line" id="q-tide-line"></p>
       </div>
       <div class="q" id="q-wind">
         <div class="q-head"><a class="q-title" href="#wind-card">Wind</a><span class="q-note">No limit</span></div>
@@ -365,14 +370,10 @@
         </div>
         <p class="q-line" id="q-wind-line"></p>
       </div>
-      <div class="q" id="q-tide">
-        <div class="q-head"><a class="q-title" href="#tide-card">Tide and current</a></div>
-        <div>
-          <div class="q-big words" id="q-tide-state">–</div>
-          <div class="q-sub" id="q-tide-sub"></div>
-        </div>
-        <div id="q-tide-chart"></div>
-        <p class="q-line" id="q-tide-line"></p>
+      <div class="q" id="q-radar">
+        <div class="q-head"><a class="q-title" href="#rain-card">Rain and lightning</a><span class="tag" id="q-radar-tag" data-level="unknown">…</span></div>
+        <div class="glance-map" id="glance-map" role="img" aria-label="Latest rain radar around Sentosa with recent lightning"></div>
+        <p class="q-line" id="q-radar-line">Loading…</p>
       </div>
       <div class="q" id="q-haze">
         <div class="q-head"><a class="q-title" href="#haze-card">Haze</a><span class="tag" id="q-haze-tag" data-level="unknown">…</span></div>
@@ -384,46 +385,6 @@
         <p class="q-line" id="q-haze-line"></p>
       </div>
     </section>
-
-    <div class="pair">
-      <!-- Haze -->
-      <section class="block" id="haze-card" aria-labelledby="haze-h">
-        <div class="block-head">
-          <h2 id="haze-h">Haze, south</h2>
-          <span class="tag" id="haze-badge" data-level="unknown">…</span>
-        </div>
-        <div class="stats">
-          <div><div class="label">24-hour PSI</div><div class="value" id="psi">–</div><div class="sub" id="psi-band"></div></div>
-          <div><div class="label">PM2.5, 1 hour</div><div class="value" id="pm25">–</div><div class="sub" id="pm25-band"></div></div>
-        </div>
-        <p class="sub" id="haze-time"></p>
-        <p class="source">Club limit is PSI 120. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
-      </section>
-
-      <!-- Wind -->
-      <section class="block" id="wind-card" aria-labelledby="wind-h">
-        <div class="block-head">
-          <h2 id="wind-h">Wind</h2>
-          <span class="note-right">No club limit</span>
-        </div>
-        <div class="stats">
-          <div><div class="label">Forecast</div><div class="value" id="wind-speed">–</div><div class="sub" id="wind-gust"></div></div>
-          <div><div class="label">From</div><div class="value" id="wind-dir">–</div><div class="sub" id="wind-vs-tide"></div></div>
-          <div><div class="label">Measured</div><div class="value" id="wind-obs">–</div><div class="sub" id="wind-obs-sub"></div></div>
-        </div>
-        <div class="scroll-x">
-          <table>
-            <thead><tr><th>Time</th><th>Wind km/h</th><th>Gust</th><th>From</th><th>Rain</th></tr></thead>
-            <tbody id="wind-table"></tbody>
-          </table>
-        </div>
-        <details id="windy-details">
-          <summary>Open the Windy map</summary>
-          <iframe class="windy" id="windy-frame" title="Windy wind map around Sentosa" loading="lazy"></iframe>
-        </details>
-        <p class="source">Forecast from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, measured at the nearest NEA station. Full map on <a href="https://www.windy.com/?1.255,103.811,12" target="_blank" rel="noopener">Windy</a>.</p>
-      </section>
-    </div>
 
     <!-- Tide & current -->
     <section class="block" id="tide-card" aria-labelledby="tide-h">
@@ -458,6 +419,30 @@
       <p class="source" id="tide-source"></p>
     </section>
 
+    <!-- Wind -->
+    <section class="block" id="wind-card" aria-labelledby="wind-h">
+      <div class="block-head">
+        <h2 id="wind-h">Wind</h2>
+        <span class="note-right">No club limit</span>
+      </div>
+      <div class="stats">
+        <div><div class="label">Forecast</div><div class="value" id="wind-speed">–</div><div class="sub" id="wind-gust"></div></div>
+        <div><div class="label">From</div><div class="value" id="wind-dir">–</div><div class="sub" id="wind-vs-tide"></div></div>
+        <div><div class="label">Measured</div><div class="value" id="wind-obs">–</div><div class="sub" id="wind-obs-sub"></div></div>
+      </div>
+      <div class="scroll-x">
+        <table>
+          <thead><tr><th>Time</th><th>Wind</th><th>Gust</th><th>From</th><th>Rain</th></tr></thead>
+          <tbody id="wind-table"></tbody>
+        </table>
+      </div>
+      <details id="windy-details">
+        <summary>Open the Windy map</summary>
+        <iframe class="windy" id="windy-frame" title="Windy wind map around Sentosa" loading="lazy"></iframe>
+      </details>
+      <p class="source">Forecast from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, measured at the nearest NEA station. Full map on <a href="https://www.windy.com/?1.255,103.811,12" target="_blank" rel="noopener">Windy</a>.</p>
+    </section>
+
     <!-- Lightning & rain -->
     <section class="block" id="rain-card" aria-labelledby="rain-h">
       <div class="block-head">
@@ -488,10 +473,24 @@
   </section>
 
   <!-- Upcoming club sessions -->
-  <section id="sessions" class="block" aria-labelledby="sessions-h" style="border-bottom:0">
+  <section id="sessions" class="block" aria-labelledby="sessions-h">
     <h2 id="sessions-h">Coming up</h2>
     <p class="sessions-intro">Tides are known days ahead, so the route advice below is solid. Lightning and haze can only be called on the day. Check <a href="#now">Now</a> before you launch.</p>
     <div class="session-grid" id="session-grid"></div>
+  </section>
+
+  <!-- Haze -->
+  <section class="block" id="haze-card" aria-labelledby="haze-h" style="border-bottom:0">
+    <div class="block-head">
+      <h2 id="haze-h">Haze, south</h2>
+      <span class="tag" id="haze-badge" data-level="unknown">…</span>
+    </div>
+    <div class="stats">
+      <div><div class="label">24-hour PSI</div><div class="value" id="psi">–</div><div class="sub" id="psi-band"></div></div>
+      <div><div class="label">PM2.5, 1 hour</div><div class="value" id="pm25">–</div><div class="sub" id="pm25-band"></div></div>
+    </div>
+    <p class="sub" id="haze-time"></p>
+    <p class="source">Club limit is PSI 120. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
   </section>
 </main>
 
@@ -554,6 +553,9 @@
     return 12742 * Math.asin(Math.sqrt(a));
   };
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Wind in km/h with knots alongside, for the detail view.
+  const KMH_PER_KT = 1.852;
+  const kmhKt = (kmh) => `${Math.round(kmh)} km/h <span class="kt">${Math.round(kmh / KMH_PER_KT)} kt</span>`;
   const lower = (s) => String(s).replace(/\s*\((day|night)\)/i, '').toLowerCase();
 
   async function getJSON(url) {
@@ -946,11 +948,11 @@
     const [spd, dir] = await Promise.allSettled([getJSON(`${API}/wind-speed`), getJSON(`${API}/wind-direction`)]);
     if (wxResult.status === 'fulfilled') {
       const wx = wxResult.value, c = wx.current;
-      $('wind-speed').textContent = `${Math.round(c.wind_speed_10m)} km/h`;
-      $('wind-gust').textContent = `gusts to ${Math.round(c.wind_gusts_10m)} km/h`;
+      $('wind-speed').innerHTML = kmhKt(c.wind_speed_10m);
+      $('wind-gust').textContent = `gusts to ${Math.round(c.wind_gusts_10m)} km/h (${Math.round(c.wind_gusts_10m / KMH_PER_KT)} kt)`;
       $('wind-dir').innerHTML = `${arrowFor(c.wind_direction_10m)} ${compass(c.wind_direction_10m)}`;
       const nowHr = Math.floor(Date.now() / HOUR) * HOUR;
-      $('wind-table').innerHTML = hourlyRows(wx, nowHr, nowHr + 6 * HOUR).map((r) => `<tr><td class="num">${fmtTime(new Date(r.t))}</td><td class="num">${Math.round(r.speed)}</td><td class="num">${Math.round(r.gust)}</td><td>${arrowFor(r.dir)} ${compass(r.dir)}</td><td class="num">${r.pop ?? '–'}%</td></tr>`).join('');
+      $('wind-table').innerHTML = hourlyRows(wx, nowHr, nowHr + 6 * HOUR).map((r) => `<tr><td class="num">${fmtTime(new Date(r.t))}</td><td class="num">${kmhKt(r.speed)}</td><td class="num">${kmhKt(r.gust)}</td><td>${arrowFor(r.dir)} ${compass(r.dir)}</td><td class="num">${r.pop ?? '–'}%</td></tr>`).join('');
       if (tideNow) $('wind-vs-tide').textContent = windVsTide(c.wind_direction_10m, c.wind_speed_10m, tideNow.flow);
       $('q-compass').innerHTML = compassSvg(c.wind_direction_10m);
       $('q-wind-speed').innerHTML = `${Math.round(c.wind_speed_10m)}<small>km/h</small>`;
@@ -966,11 +968,11 @@
     }
     if (spd.status === 'fulfilled') {
       const obs = stationReadings(spd.value);
-      const toKmh = /knot|kt/.test(obs.unit) || !obs.unit ? 1.852 : /m\/s/.test(obs.unit) ? 3.6 : 1;
+      const toKmh = /knot|kt/.test(obs.unit) || !obs.unit ? KMH_PER_KT : /m\/s/.test(obs.unit) ? 3.6 : 1;
       const s = obs.list[0] && { ...obs.list[0], value: obs.list[0].value * toKmh };
       const d = dir.status === 'fulfilled' ? stationReadings(dir.value).list.find((x) => x.name === s?.name) : null;
       if (s) {
-        $('wind-obs').innerHTML = `${Math.round(s.value)} km/h${d ? ` ${arrowFor(d.value)}` : ''}`;
+        $('wind-obs').innerHTML = `${kmhKt(s.value)}${d ? ` ${arrowFor(d.value)}` : ''}`;
         $('wind-obs-sub').textContent = `${s.name}, ${s.km.toFixed(1)} km away${d ? `, from the ${compass(d.value)}` : ''}`;
       }
     } else $('wind-obs-sub').textContent = 'No station reading';
@@ -1272,7 +1274,7 @@
       const r0 = rows[0];
       const pop = Math.max(...rows.map((r) => r.pop ?? 0));
       const worstCode = Math.max(...rows.map((r) => r.code ?? 0));
-      stats.push(`<div><div class="label">Wind</div><div class="value">${Math.round(r0.speed)} km/h ${arrowFor(r0.dir)} ${compass(r0.dir)}</div><div class="sub">gusts to ${Math.round(r0.gust)} km/h</div></div>`);
+      stats.push(`<div><div class="label">Wind</div><div class="value">${kmhKt(r0.speed)} ${arrowFor(r0.dir)} ${compass(r0.dir)}</div><div class="sub">gusts to ${Math.round(r0.gust)} km/h (${Math.round(r0.gust / KMH_PER_KT)} kt)</div></div>`);
       stats.push(`<div><div class="label">Chance of rain</div><div class="value">${pop}%</div><div class="sub">${WMO_TEXT(worstCode)} in the forecast</div></div>`);
       if (worstCode >= 95) { level = 'caution'; badge = 'Thunder risk'; }
       else if (pop >= 60) { level = 'caution'; badge = 'Rain likely'; }

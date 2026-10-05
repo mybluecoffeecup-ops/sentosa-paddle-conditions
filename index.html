@@ -174,6 +174,43 @@
   .reasons li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 8px; height: 1.5px; background: var(--ink-2); }
   .fine { margin: 14px 0 0; font-size: 0.82rem; color: var(--ink-2); max-width: 72ch; }
 
+  /* ---------- At a glance: one box split into four panes, like chart insets ---------- */
+  .glance { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--ink); margin-block: 18px 4px; }
+  .q { padding: 12px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .q:nth-child(odd) { border-right: 1px solid var(--ink); }
+  .q:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+  .q-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 8px; flex-wrap: wrap; }
+  .q-title { font-family: var(--font-water); font-style: italic; font-weight: 600; font-size: 1.12rem; text-decoration: none; }
+  .q-title:hover { text-decoration: underline; }
+  .q-note { font-size: 0.74rem; color: var(--ink-2); }
+  .q-big { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-weight: 600; font-size: clamp(1.5rem, 5.5vw, 2.3rem); line-height: 1.05; }
+  .q-big.words { font-family: var(--font-body); font-weight: 700; }
+  .q-big small { font-size: 0.45em; font-weight: 400; color: var(--ink-2); margin-left: 3px; }
+  .q-sub { font-size: 0.82rem; color: var(--ink-2); margin-top: 2px; }
+  .q-line { margin: auto 0 0; font-size: 0.86rem; }
+  .q-body { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .glance-map { height: clamp(140px, 26vw, 210px); max-width: 100%; border: 1px solid var(--rule); background: var(--shoal); pointer-events: none; }
+  .glance-map .leaflet-control-attribution { font-size: 8px; }
+  .q-compass { width: clamp(64px, 18vw, 96px); flex: none; }
+  .compass { width: 100%; height: auto; display: block; }
+  .compass .c-ring { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+  .compass .c-tick { stroke: var(--ink-2); stroke-width: 1; }
+  .compass text { font-family: var(--font-data); font-size: 10px; fill: var(--ink-2); text-anchor: middle; dominant-baseline: central; }
+  .compass .c-shaft { stroke: var(--sounding); stroke-width: 3; stroke-linecap: round; }
+  .compass .c-head { fill: var(--sounding); }
+  .psi-scale { position: relative; padding-top: 16px; }
+  .psi-track { position: relative; height: 8px; background: var(--shoal); }
+  .psi-fill { position: absolute; inset: 0 auto 0 0; background: var(--sounding); }
+  .psi-fill.over { background: var(--hold); }
+  .psi-limit { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--magenta); }
+  .psi-limit span { position: absolute; bottom: 100%; left: 4px; font-family: var(--font-data); font-size: 0.7rem; font-weight: 600; color: var(--magenta); white-space: nowrap; }
+  .psi-axis { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 0.7rem; color: var(--ink-2); margin-top: 4px; }
+  @media (max-width: 639px) {
+    .q { padding: 10px; gap: 6px; }
+    .q-title { font-size: 1rem; }
+    .q-line { font-size: 0.8rem; }
+  }
+
   /* ---------- Sections ---------- */
   .block { padding-block: 22px; border-bottom: 1px solid var(--rule); min-width: 0; }
   .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
@@ -310,6 +347,44 @@
       <p class="fine">Club rules: no paddling in CAT 1, or when the 24-hour PSI is over 120. We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
     </div>
 
+    <!-- At a glance: four panes -->
+    <section class="glance" id="glance" aria-label="At a glance">
+      <div class="q" id="q-radar">
+        <div class="q-head"><a class="q-title" href="#rain-card">Rain and lightning</a><span class="tag" id="q-radar-tag" data-level="unknown">…</span></div>
+        <div class="glance-map" id="glance-map" role="img" aria-label="Latest rain radar around Sentosa with recent lightning"></div>
+        <p class="q-line" id="q-radar-line">Loading…</p>
+      </div>
+      <div class="q" id="q-wind">
+        <div class="q-head"><a class="q-title" href="#wind-card">Wind</a><span class="q-note">No limit</span></div>
+        <div class="q-body">
+          <div id="q-compass" class="q-compass"></div>
+          <div>
+            <div class="q-big" id="q-wind-speed">–</div>
+            <div class="q-sub" id="q-wind-sub"></div>
+          </div>
+        </div>
+        <p class="q-line" id="q-wind-line"></p>
+      </div>
+      <div class="q" id="q-tide">
+        <div class="q-head"><a class="q-title" href="#tide-card">Tide and current</a></div>
+        <div>
+          <div class="q-big words" id="q-tide-state">–</div>
+          <div class="q-sub" id="q-tide-sub"></div>
+        </div>
+        <div id="q-tide-chart"></div>
+        <p class="q-line" id="q-tide-line"></p>
+      </div>
+      <div class="q" id="q-haze">
+        <div class="q-head"><a class="q-title" href="#haze-card">Haze</a><span class="tag" id="q-haze-tag" data-level="unknown">…</span></div>
+        <div>
+          <div class="q-big" id="q-psi">–</div>
+          <div class="q-sub" id="q-psi-sub">24-hour PSI, south</div>
+        </div>
+        <div id="q-psi-scale"></div>
+        <p class="q-line" id="q-haze-line"></p>
+      </div>
+    </section>
+
     <div class="pair">
       <!-- Haze -->
       <section class="block" id="haze-card" aria-labelledby="haze-h">
@@ -338,7 +413,7 @@
         </div>
         <div class="scroll-x">
           <table>
-            <thead><tr><th>Time</th><th>Wind</th><th>Gust</th><th>From</th><th>Rain</th></tr></thead>
+            <thead><tr><th>Time</th><th>Wind km/h</th><th>Gust</th><th>From</th><th>Rain</th></tr></thead>
             <tbody id="wind-table"></tbody>
           </table>
         </div>
@@ -498,6 +573,8 @@
     const t = $(tagId);
     t.dataset.level = level;
     t.textContent = tagText || TAG_TEXT[level];
+    const mirror = { rain: 'q-radar-tag', haze: 'q-haze-tag' }[key];
+    if (mirror) { $(mirror).dataset.level = level; $(mirror).textContent = t.textContent; }
     renderVerdict();
   }
   function renderVerdict() {
@@ -650,6 +727,14 @@
   const routesFor = (keys) => CONFIG.routes.filter((r) => !keys || keys.includes(r.key));
 
   let tideNow = null; // shared with the wind section for wind-against-tide
+  let glanceTide = null; // last at-a-glance tide chart inputs, redrawn on resize
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (glanceTide) $('q-tide-chart').innerHTML = glanceTideChart(glanceTide.tide, glanceTide.now, $('q-tide-chart').clientWidth);
+    }, 150);
+  });
 
   function renderTides(tides, sessions) {
     const now = Date.now();
@@ -668,6 +753,11 @@
     $('tide-next-sub').textContent = `${s.next.type === 'high' ? 'High' : 'Low'}, ${s.next.h.toFixed(2)} m, in ${fmtDur(s.next.t - now)}`;
     $('current-dir').textContent = s.flow.label;
     $('current-strength').textContent = `${s.phase}, ${s.size} (${s.range.toFixed(1)} m)`;
+    $('q-tide-state').textContent = `${s.rising ? 'Rising' : 'Falling'}, ${s.h.toFixed(1)} m`;
+    $('q-tide-sub').textContent = `${s.next.type === 'high' ? 'High' : 'Low'} at ${fmtTime(new Date(s.next.t))}, ${s.next.h.toFixed(1)} m`;
+    glanceTide = { tide, now };
+    $('q-tide-chart').innerHTML = glanceTideChart(tide, now, $('q-tide-chart').clientWidth);
+    $('q-tide-line').innerHTML = `Current ${s.flow.label}, ${s.phase}. Push <b>${s.flow.againstIt}</b> first, ride it home.`;
     $('routes-now').innerHTML = CONFIG.routes.map((r) => routePlan(tide, now, r)).filter(Boolean).map(routeHtml).join('');
 
     $('tide-table').innerHTML = tide.ext.filter((e) => e.t >= start && e.t < end).map((e) =>
@@ -776,6 +866,51 @@
       <div class="legend"><span><i class="sw-band"></i>On the water</span>${hasTurn ? '<span><i class="sw-turn"></i>Turnaround</span>' : ''}</div>`;
   }
 
+  // ---------- At a glance ----------
+  // Compass rose with an arrow showing where the wind is blowing to (tail on the side it comes from).
+  function compassSvg(fromDeg) {
+    const ticks = Array.from({ length: 12 }, (_, i) => {
+      const a = i * 30 * Math.PI / 180, r1 = i % 3 ? 40 : 37;
+      return `<line class="c-tick" x1="${(Math.sin(a) * r1).toFixed(1)}" y1="${(-Math.cos(a) * r1).toFixed(1)}" x2="${(Math.sin(a) * 44).toFixed(1)}" y2="${(-Math.cos(a) * 44).toFixed(1)}"/>`;
+    }).join('');
+    const to = (fromDeg + 180) % 360;
+    return `<svg class="compass" viewBox="-50 -50 100 100" role="img" aria-label="Wind from the ${compass(fromDeg)}">
+      <circle class="c-ring" r="44"/>${ticks}
+      <text y="-29">N</text><text x="29">E</text><text y="29">S</text><text x="-29">W</text>
+      <g transform="rotate(${to})"><line class="c-shaft" x1="0" y1="24" x2="0" y2="-14"/><path class="c-head" d="M0,-26 L8,-12 L-8,-12 Z"/></g>
+    </svg>`;
+  }
+  function glanceTideChart(tide, now, width) {
+    const from = now - 3 * HOUR, to = now + 9 * HOUR;
+    const W = Math.max(140, Math.round(width || 300)), H = 96, pad = { l: 4, r: 4, t: 18, b: 16 };
+    const pts = [];
+    for (let t = from; t <= to; t += 10 * 60e3) { const h = tide.height(t); if (h != null) pts.push([t, h]); }
+    if (pts.length < 2) return '';
+    const hs = pts.map((p) => p[1]);
+    const yMin = Math.min(...hs) - 0.15, yMax = Math.max(...hs) + 0.3;
+    const x = (t) => pad.l + (t - from) / (to - from) * (W - pad.l - pad.r);
+    const y = (h) => pad.t + (1 - (h - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
+    const parts = [`<path class="area" d="${line}L${x(pts[pts.length - 1][0])},${H - pad.b}L${x(pts[0][0])},${H - pad.b}Z"/>`, `<path class="curve" d="${line}"/>`];
+    for (const e of tide.ext.filter((e) => e.t > from && e.t < to)) {
+      const anchor = x(e.t) > W - 30 ? 'end' : x(e.t) < 30 ? 'start' : 'middle';
+      parts.push(`<circle class="ext-dot" cx="${x(e.t)}" cy="${y(e.h)}" r="3"/>`);
+      parts.push(`<text class="ext-label" x="${x(e.t)}" y="${e.type === 'high' ? y(e.h) - 6 : y(e.h) + 13}" text-anchor="${anchor}">${fmtTime(new Date(e.t)).replace(' ', '')}</text>`);
+    }
+    parts.push(`<line class="now-line" x1="${x(now)}" x2="${x(now)}" y1="${pad.t - 4}" y2="${H - pad.b}"/>`);
+    parts.push(`<circle class="now-dot" cx="${x(now)}" cy="${y(tide.height(now))}" r="4"/>`);
+    parts.push(`<text class="now-label" x="${x(now) - 4}" y="${pad.t - 6}" text-anchor="end">now</text>`);
+    return `<svg class="tide-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tide from 3 hours ago to 9 hours ahead">${parts.join('')}</svg>`;
+  }
+  function psiScaleHtml(psi) {
+    const pct = (v) => Math.min(v, 200) / 2;
+    return `<div class="psi-scale" role="img" aria-label="PSI ${psi} on a scale to 200, club limit ${CONFIG.psi.hold}">
+      <div class="psi-track"><div class="psi-fill${psi > CONFIG.psi.hold ? ' over' : ''}" style="width:${pct(psi)}%"></div>
+        <div class="psi-limit" style="left:${pct(CONFIG.psi.hold)}%"><span>limit ${CONFIG.psi.hold}</span></div></div>
+      <div class="psi-axis"><span>0</span><span>100</span><span>200</span></div>
+    </div>`;
+  }
+
   // ---------- NEA station data (data.gov.sg v2, tolerant of the v1 shape) ----------
   function stationReadings(json) {
     const d = json.data || json;
@@ -783,6 +918,7 @@
     const latest = (d.readings || d.items || [])[0] || {};
     const values = latest.data || latest.readings || [];
     return {
+      unit: String(d.readingUnit || '').toLowerCase(),
       time: latest.timestamp ? new Date(latest.timestamp) : null,
       list: values.map((v) => {
         const s = stations.find((st) => st.id === (v.stationId || v.station_id)) || {};
@@ -796,7 +932,7 @@
   const weatherUrl = () => `https://api.open-meteo.com/v1/forecast?latitude=${SPOT.lat}&longitude=${SPOT.lon}` +
     `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m` +
     `&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability,weather_code` +
-    `&wind_speed_unit=kn&timezone=GMT&forecast_days=9`;
+    `&wind_speed_unit=kmh&timezone=GMT&forecast_days=9`;
   function hourlyRows(wx, from, to) {
     const h = wx.hourly;
     return h.time.map((s, i) => ({
@@ -810,26 +946,37 @@
     const [spd, dir] = await Promise.allSettled([getJSON(`${API}/wind-speed`), getJSON(`${API}/wind-direction`)]);
     if (wxResult.status === 'fulfilled') {
       const wx = wxResult.value, c = wx.current;
-      $('wind-speed').textContent = `${Math.round(c.wind_speed_10m)} kt`;
-      $('wind-gust').textContent = `gusts to ${Math.round(c.wind_gusts_10m)} kt`;
+      $('wind-speed').textContent = `${Math.round(c.wind_speed_10m)} km/h`;
+      $('wind-gust').textContent = `gusts to ${Math.round(c.wind_gusts_10m)} km/h`;
       $('wind-dir').innerHTML = `${arrowFor(c.wind_direction_10m)} ${compass(c.wind_direction_10m)}`;
       const nowHr = Math.floor(Date.now() / HOUR) * HOUR;
-      $('wind-table').innerHTML = hourlyRows(wx, nowHr, nowHr + 6 * HOUR).map((r) => `<tr><td class="num">${fmtTime(new Date(r.t))}</td><td class="num">${Math.round(r.speed)} kt</td><td class="num">${Math.round(r.gust)} kt</td><td>${arrowFor(r.dir)} ${compass(r.dir)}</td><td class="num">${r.pop ?? '–'}%</td></tr>`).join('');
+      $('wind-table').innerHTML = hourlyRows(wx, nowHr, nowHr + 6 * HOUR).map((r) => `<tr><td class="num">${fmtTime(new Date(r.t))}</td><td class="num">${Math.round(r.speed)}</td><td class="num">${Math.round(r.gust)}</td><td>${arrowFor(r.dir)} ${compass(r.dir)}</td><td class="num">${r.pop ?? '–'}%</td></tr>`).join('');
       if (tideNow) $('wind-vs-tide').textContent = windVsTide(c.wind_direction_10m, c.wind_speed_10m, tideNow.flow);
+      $('q-compass').innerHTML = compassSvg(c.wind_direction_10m);
+      $('q-wind-speed').innerHTML = `${Math.round(c.wind_speed_10m)}<small>km/h</small>`;
+      $('q-wind-sub').textContent = `from the ${compass(c.wind_direction_10m)}, gusts to ${Math.round(c.wind_gusts_10m)}`;
+      const next3 = hourlyRows(wx, nowHr + HOUR, nowHr + 3 * HOUR);
+      if (next3.length) {
+        const lo = Math.round(Math.min(...next3.map((r) => r.speed))), hi = Math.round(Math.max(...next3.map((r) => r.speed)));
+        $('q-wind-line').textContent = `Next 3 hours: ${lo === hi ? lo : `${lo} to ${hi}`} km/h.${tideNow ? ` ${windVsTide(c.wind_direction_10m, c.wind_speed_10m, tideNow.flow)}.` : ''}`;
+      }
     } else {
       $('wind-gust').innerHTML = `<span class="err">Couldn't load the forecast (${esc(wxResult.reason.message)}).</span>`;
+      $('q-wind-sub').innerHTML = '<span class="err">Couldn\'t load the forecast.</span>';
     }
     if (spd.status === 'fulfilled') {
-      const s = stationReadings(spd.value).list[0];
+      const obs = stationReadings(spd.value);
+      const toKmh = /knot|kt/.test(obs.unit) || !obs.unit ? 1.852 : /m\/s/.test(obs.unit) ? 3.6 : 1;
+      const s = obs.list[0] && { ...obs.list[0], value: obs.list[0].value * toKmh };
       const d = dir.status === 'fulfilled' ? stationReadings(dir.value).list.find((x) => x.name === s?.name) : null;
       if (s) {
-        $('wind-obs').innerHTML = `${Math.round(s.value)} kt${d ? ` ${arrowFor(d.value)}` : ''}`;
+        $('wind-obs').innerHTML = `${Math.round(s.value)} km/h${d ? ` ${arrowFor(d.value)}` : ''}`;
         $('wind-obs-sub').textContent = `${s.name}, ${s.km.toFixed(1)} km away${d ? `, from the ${compass(d.value)}` : ''}`;
       }
     } else $('wind-obs-sub').textContent = 'No station reading';
   }
-  function windVsTide(fromDeg, speedKt, flow) {
-    if (speedKt < 8) return 'Light, won\'t matter much';
+  function windVsTide(fromDeg, speedKmh, flow) {
+    if (speedKmh < 15) return 'Light, won\'t matter much';
     const diff = Math.abs((((fromDeg + 180) % 360 - flow.flowsTo + 540) % 360) - 180);
     return diff > 120 ? 'Against the tide, expect chop' : diff < 60 ? 'With the tide' : 'Across the tide';
   }
@@ -847,12 +994,17 @@
       $('psi-band').textContent = psiBand(psi);
       $('pm25').textContent = pm ?? '–';
       $('pm25-band').textContent = pm != null ? `µg/m³, ${pm25Band(pm)}` : '';
+      $('q-psi').textContent = psi;
+      $('q-psi-sub').textContent = `24-hour PSI, south. ${psiBand(psi)}.`;
+      $('q-psi-scale').innerHTML = psiScaleHtml(psi);
+      $('q-haze-line').textContent = pm != null ? `PM2.5 ${pm} µg/m³ over the last hour.` : '';
       $('haze-time').textContent = `NEA reading at ${fmtTime(new Date(item.updatedTimestamp || item.update_timestamp || item.timestamp))}`;
       if (psi > CONFIG.psi.hold) setStatus('haze', 'haze-badge', 'hold', [`PSI is ${psi} in the south, over the club limit of ${CONFIG.psi.hold}.`]);
       else if (psi > CONFIG.psi.caution) setStatus('haze', 'haze-badge', 'caution', [`PSI is ${psi} in the south. That's under the limit of ${CONFIG.psi.hold}, but close.`]);
       else setStatus('haze', 'haze-badge', 'go', [`PSI is ${psi} in the south (${psiBand(psi).toLowerCase()}).`]);
     } catch (e) {
       $('psi-band').innerHTML = `<span class="err">Couldn't load (${esc(e.message)})</span>`;
+      $('q-psi-sub').innerHTML = '<span class="err">Couldn\'t load the haze reading.</span>';
       setStatus('haze', 'haze-badge', 'unknown', ['Couldn\'t load the haze reading. Check haze.gov.sg.']);
     }
   }
@@ -880,13 +1032,14 @@
   }
   const CAT1_FALLBACK_AREAS = ['Sentosa', 'Bukit Merah', 'Southern Islands'];
 
-  let strikeLayer = null;
+  let strikeLayers = [];
   async function loadRain() {
     const [lt, nc, rf] = await Promise.allSettled([
       getJSON(`${API}/weather?api=lightning`), getJSON(`${API}/two-hr-forecast`), getJSON(`${API}/rainfall`),
     ]);
     const { radiusKm, strikeWindowMin, watchKm } = CONFIG.cat1;
     const reasons = [];
+    const glance = [];
     let level = 'go', cat1 = false;
     const bump = (l) => { if (LEVEL_RANK[l] > LEVEL_RANK[level]) level = l; };
 
@@ -897,6 +1050,9 @@
       const inRing = strikes.filter((s) => s.km <= radiusKm);
       const groundInRing = inRing.filter((s) => s.ground);
       const watch = strikes.filter((s) => s.km <= watchKm);
+      glance.push(!strikes.length ? 'No lightning over Singapore.'
+        : strikes[0].km <= watchKm ? `Lightning ${strikes[0].km.toFixed(1)} km away at ${fmtTime(new Date(strikes[0].t))}.`
+        : `No lightning within ${watchKm} km.`);
       if (!strikes.length) {
         $('lightning').textContent = 'None';
         $('lightning-sub').textContent = 'Nothing anywhere over Singapore';
@@ -917,10 +1073,13 @@
         reasons.push(`Lightning ${watch[0].km.toFixed(1)} km away. That's outside the ${radiusKm} km ring for now.`);
       } else reasons.push(`No lightning within ${watchKm} km of Siloso in the last ${strikeWindowMin} minutes.`);
       if (window.L && radar.map) {
-        if (strikeLayer) strikeLayer.remove();
+        strikeLayers.forEach((l) => l.remove());
         const style = getComputedStyle(document.documentElement);
-        strikeLayer = L.layerGroup(strikes.map((s) => L.circleMarker([s.lat, s.lon], { radius: 5, color: style.getPropertyValue('--hold').trim(), weight: 2, fillColor: style.getPropertyValue('--watch').trim(), fillOpacity: 0.9 })
-          .bindTooltip(`Lightning ${fmtTime(new Date(s.t))}, ${s.km.toFixed(1)} km${s.ground ? '' : ' (cloud)'}`))).addTo(radar.map);
+        const marker = (s) => L.circleMarker([s.lat, s.lon], { radius: 5, color: style.getPropertyValue('--hold').trim(), weight: 2, fillColor: style.getPropertyValue('--watch').trim(), fillOpacity: 0.9 });
+        strikeLayers = [
+          L.layerGroup(strikes.map((s) => marker(s).bindTooltip(`Lightning ${fmtTime(new Date(s.t))}, ${s.km.toFixed(1)} km${s.ground ? '' : ' (cloud)'}`))).addTo(radar.map),
+          L.layerGroup(strikes.map(marker)).addTo(radar.glance),
+        ];
       }
     } else {
       bump('unknown');
@@ -945,6 +1104,7 @@
       $('nowcast-sub').textContent = vp.text || (vp.start ? `${fmtTime(new Date(vp.start))} to ${fmtTime(new Date(vp.end))}` : '');
       $('nowcast-table').innerHTML = (watchAreas.length ? watchAreas : near).map((a) =>
         `<tr${near.includes(a) ? ' class="near"' : ''}><td>${esc(a.area)}</td><td class="num">${a.km != null ? a.km.toFixed(1) + ' km' : '–'}</td><td>${esc(a.text.replace(/\s*\((Day|Night)\)/, ''))}</td></tr>`).join('');
+      if (sentosa) glance.push(`Sentosa, next 2 hours: ${esc(lower(sentosa.text))}.`);
       const cat1Area = near.find((a) => /thunder|heavy/i.test(a.text));
       if (cat1Area) {
         cat1 = true;
@@ -969,11 +1129,12 @@
       }
     } else $('rain-now-sub').textContent = 'No gauge reading';
 
+    $('q-radar-line').innerHTML = glance.join(' ') || 'Couldn\'t load lightning or the forecast.';
     setStatus('rain', 'rain-badge', level, reasons, cat1 ? 'CAT 1' : undefined);
   }
 
   // ---------- Radar (NEA 70 km rain-area images, 5-minute frames) ----------
-  const radar = { map: null, overlay: null, frames: [], idx: 0, hold: 0, timer: null, playing: !prefersReducedMotion };
+  const radar = { map: null, glance: null, glanceOverlay: null, overlay: null, frames: [], idx: 0, hold: 0, timer: null, playing: !prefersReducedMotion };
   const RADAR_BOUNDS = [[1.1450, 103.565], [1.4572, 104.130]];
   const radarUrl = (ms) => {
     const d = new Date(ms + 8 * HOUR);
@@ -992,6 +1153,13 @@
     L.circleMarker([SPOT.lat, SPOT.lon], { radius: 6, color: paper, weight: 2, fillColor: ink, fillOpacity: 1 }).addTo(radar.map).bindTooltip('Siloso', { permanent: true, direction: 'left' });
     const wm = CONFIG.whiteMarker;
     L.circleMarker([wm.lat, wm.lon], { radius: 5, color: ink, weight: 2, fillColor: paper, fillOpacity: 1 }).addTo(radar.map).bindTooltip('White Marker', { permanent: true, direction: 'right' });
+    // Static snapshot map for the at-a-glance pane: no controls, no interaction.
+    radar.glance = L.map('glance-map', { zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false, boxZoom: false, keyboard: false, attributionControl: true })
+      .setView([1.262, 103.83], 10);
+    radar.glance.attributionControl.setPrefix(false);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15, attribution: '© OSM · NEA' }).addTo(radar.glance);
+    L.circle([SPOT.lat, SPOT.lon], { radius: CONFIG.cat1.radiusKm * 1000, color: magenta, weight: 1.5, fill: false, dashArray: '4 4' }).addTo(radar.glance);
+    L.circleMarker([SPOT.lat, SPOT.lon], { radius: 4, color: paper, weight: 1.5, fillColor: ink, fillOpacity: 1 }).addTo(radar.glance);
   }
 
   async function loadRadar() {
@@ -999,6 +1167,11 @@
     const candidates = Array.from({ length: 16 }, (_, i) => latest - i * step);
     const ok = await Promise.all(candidates.map((t) => probe(radarUrl(t))));
     radar.frames = candidates.filter((_, i) => ok[i]).slice(0, 12).reverse();
+    if (radar.frames.length && window.L && radar.glance) {
+      const src = radarUrl(radar.frames[radar.frames.length - 1]);
+      if (radar.glanceOverlay) radar.glanceOverlay.setUrl(src);
+      else radar.glanceOverlay = L.imageOverlay(src, RADAR_BOUNDS, { opacity: 0.75 }).addTo(radar.glance);
+    }
     if (!radar.frames.length) { $('radar-time').innerHTML = 'Radar didn\'t load. <a href="https://www.nea.gov.sg/weather/rain-areas" target="_blank" rel="noopener">Open it on NEA</a>.'; return; }
     $('radar-frame').max = radar.frames.length - 1;
     showFrame(radar.frames.length - 1);
@@ -1035,7 +1208,7 @@
   $('windy-details').addEventListener('toggle', (e) => {
     const f = $('windy-frame');
     if (e.target.open && !f.src) {
-      f.src = `https://embed.windy.com/embed2.html?lat=${SPOT.lat}&lon=${SPOT.lon}&detailLat=${SPOT.lat}&detailLon=${SPOT.lon}&zoom=11&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=true&metricWind=kt&metricTemp=%C2%B0C&radarRange=-1`;
+      f.src = `https://embed.windy.com/embed2.html?lat=${SPOT.lat}&lon=${SPOT.lon}&detailLat=${SPOT.lat}&detailLon=${SPOT.lon}&zoom=11&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
     }
   });
 
@@ -1099,7 +1272,7 @@
       const r0 = rows[0];
       const pop = Math.max(...rows.map((r) => r.pop ?? 0));
       const worstCode = Math.max(...rows.map((r) => r.code ?? 0));
-      stats.push(`<div><div class="label">Wind</div><div class="value">${Math.round(r0.speed)} kt ${arrowFor(r0.dir)} ${compass(r0.dir)}</div><div class="sub">gusts to ${Math.round(r0.gust)} kt</div></div>`);
+      stats.push(`<div><div class="label">Wind</div><div class="value">${Math.round(r0.speed)} km/h ${arrowFor(r0.dir)} ${compass(r0.dir)}</div><div class="sub">gusts to ${Math.round(r0.gust)} km/h</div></div>`);
       stats.push(`<div><div class="label">Chance of rain</div><div class="value">${pop}%</div><div class="sub">${WMO_TEXT(worstCode)} in the forecast</div></div>`);
       if (worstCode >= 95) { level = 'caution'; badge = 'Thunder risk'; }
       else if (pop >= 60) { level = 'caution'; badge = 'Rain likely'; }
@@ -1139,6 +1312,7 @@
 
     const tideNowP = tidesP.then((t) => renderTides(t, sessions)).catch((e) => {
       $('tide-state-sub').innerHTML = `<span class="err">Couldn't load tides (${esc(e.message)})</span>`;
+      $('q-tide-sub').innerHTML = '<span class="err">Couldn\'t load tides.</span>';
       $('tide-source').innerHTML = 'Check <a href="https://www.tide-forecast.com/tide/Singapore-Victoria-Dock/tide-times" target="_blank" rel="noopener">tide-forecast.com</a> directly.';
     });
     const sessionsP = Promise.allSettled([tidesP, wxP, outlookP]).then(([t, w, o]) => {

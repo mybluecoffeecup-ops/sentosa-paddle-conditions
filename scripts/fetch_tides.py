@@ -141,6 +141,14 @@ def main():
     if len(extremes) < 4:
         diagnose(raw)
         sys.exit(f"only parsed {len(extremes)} tide turns from {SOURCE_URL}; page layout may have changed")
+    # The source starts at midnight today, so before the first turn there is no previous one to
+    # interpolate from. Add an estimated turn one tide-interval earlier (same height as the next
+    # turn of that type) so early-morning checks still work off this data.
+    if len(extremes) >= 3:
+        first, second = extremes[0], extremes[1]
+        gap = dt.datetime.fromisoformat(second["t"]) - dt.datetime.fromisoformat(first["t"])
+        extremes.insert(0, {"t": (dt.datetime.fromisoformat(first["t"]) - gap).isoformat(),
+                            "h": second["h"], "type": second["type"], "estimated": True})
     datum = DATUM_RE.search(page_text(raw))
     out = {
         "source": SOURCE_URL,

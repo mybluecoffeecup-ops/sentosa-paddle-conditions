@@ -575,7 +575,7 @@
       const ext = data.extremes.map((e) => ({ t: Date.parse(e.t), h: e.h, type: e.type }));
       if (ext.length >= 4 && Date.now() - Date.parse(data.fetched_at) < CONFIG.tideStaleHours * HOUR) {
         const at = new Date(data.fetched_at);
-        primary = makeTide(ext, 'above chart datum', `<a href="${esc(data.source)}" target="_blank" rel="noopener">tide-forecast.com</a> — ${esc(data.station)}, fetched ${fmtDay(at)} ${fmtTime(at)}`, false);
+        primary = makeTide(ext, `above ${esc(data.datum || 'chart datum').toLowerCase()}`, `<a href="${esc(data.source)}" target="_blank" rel="noopener">tide-forecast.com</a> — ${esc(data.station)}, fetched ${fmtDay(at)} ${fmtTime(at)}`, false);
       }
     } catch (e) { /* fall back to the modelled series */ }
     if (!primary || !primary.covers(Date.now(), needUntil)) {

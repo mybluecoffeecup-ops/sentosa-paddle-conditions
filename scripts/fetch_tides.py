@@ -25,15 +25,16 @@ MONTHS = {m: i for i, m in enumerate(
     ["january", "february", "march", "april", "may", "june", "july",
      "august", "september", "october", "november", "december"], start=1)}
 
-# Matches rows such as:
-#   "High Tide 12:34 AM (Sat 04 October) 2.91 m (9.55 ft)"
+# Fallback text parser. Matches table rows such as:
+#   "High Tide 7:59 AM (Mon 05 October) 6.5 ft (1.98 m)"
 #   "Low Tide 05:17 (Sat 4 October) 0.71m"
 TIDE_RE = re.compile(
     r"(?P<type>High|Low)\s+Tide\s*:?\s*"
     r"(?P<hour>\d{1,2}):(?P<minute>\d{2})\s*(?P<ampm>[AaPp][Mm])?\s*"
     r"\(\s*(?:[A-Za-z]+\s+)?(?P<day>\d{1,2})(?:st|nd|rd|th)?\s+(?P<month>[A-Za-z]+)\s*\)\s*"
-    r"(?P<height>-?\d+(?:\.\d+)?)\s*m\b"
+    r"(?:-?\d+(?:\.\d+)?\s*ft\s*\(\s*)?(?P<height>-?\d+(?:\.\d+)?)\s*m\b"
 )
+DATUM_RE = re.compile(r"Tide Datum:\s*([A-Za-z ]+?)(?:\s+High\b|\s*$|\s{2})")
 
 
 def fetch(url):
@@ -49,6 +50,46 @@ def page_text(raw_html):
     raw_html = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", raw_html)
     text = re.sub(r"<[^>]+>", " ", raw_html)
     return re.sub(r"\s+", " ", html.unescape(text))
+
+
+def tide_days(raw_html):
+    """The page embeds its chart data as JSON: "tideDays": [{date, sunrise, sunset, tides: [...]}],
+    with a height every 10 minutes (unix timestamps, metres) and type set on the turns."""
+    i = raw_html.find('"tideDays"')
+    if i < 0:
+        return None
+    try:
+        days, _ = json.JSONDecoder().raw_decode(raw_html, raw_html.index("[", i))
+        return days
+    except ValueError:
+        return None
+
+
+def parse_json(raw_html):
+    days = tide_days(raw_html)
+    if not days:
+        return []
+    series = {}
+    for day in days:
+        for p in day.get("tides") or []:
+            if isinstance(p.get("timestamp"), (int, float)) and isinstance(p.get("height"), (int, float)):
+                series[int(p["timestamp"])] = p
+    pts = [series[k] for k in sorted(series)]
+    typed = [p for p in pts if p.get("type")]
+    if not typed:
+        # No labelled turns: find local maxima/minima in the 10-minute series.
+        for a, b, c in zip(pts, pts[1:], pts[2:]):
+            if b["height"] > a["height"] and b["height"] >= c["height"]:
+                typed.append({**b, "type": "high"})
+            elif b["height"] < a["height"] and b["height"] <= c["height"]:
+                typed.append({**b, "type": "low"})
+    out = []
+    for p in typed:
+        kind = "high" if "high" in str(p["type"]).lower() else "low" if "low" in str(p["type"]).lower() else None
+        if kind:
+            when = dt.datetime.fromtimestamp(p["timestamp"], SGT)
+            out.append({"t": when.isoformat(), "h": round(float(p["height"]), 3), "type": kind})
+    return out
 
 
 def parse(raw_html, today=None):
@@ -93,21 +134,25 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("usage: fetch_tides.py <output.json>")
     raw = fetch(SOURCE_URL)
-    extremes = parse(raw)
+    extremes = parse_json(raw)
+    source = "embedded chart data"
+    if len(extremes) < 4:
+        extremes, source = parse(raw), "tide table text"
     if len(extremes) < 4:
         diagnose(raw)
         sys.exit(f"only parsed {len(extremes)} tide turns from {SOURCE_URL}; page layout may have changed")
+    datum = DATUM_RE.search(page_text(raw))
     out = {
         "source": SOURCE_URL,
         "station": "Singapore (Victoria Dock)",
-        "datum": "chart datum",
+        "datum": datum.group(1).strip() if datum else "Mean Lower Low Water",
         "units": "m",
         "fetched_at": dt.datetime.now(SGT).isoformat(timespec="seconds"),
         "extremes": extremes,
     }
     with open(sys.argv[1], "w") as f:
         json.dump(out, f, indent=1)
-    print(f"wrote {len(extremes)} tide turns, {extremes[0]['t']} → {extremes[-1]['t']}")
+    print(f"wrote {len(extremes)} tide turns from {source}, {extremes[0]['t']} → {extremes[-1]['t']}")
 
 
 if __name__ == "__main__":

@@ -454,13 +454,7 @@
         <div><div class="label">Sentosa, next 2 hours</div><div class="value words" id="nowcast">–</div><div class="sub" id="nowcast-sub"></div></div>
         <div><div class="label">Rain now</div><div class="value" id="rain-now">–</div><div class="sub" id="rain-now-sub"></div></div>
       </div>
-      <div class="scroll-x">
-        <table>
-          <thead><tr><th>NEA area</th><th>From Siloso</th><th>Next 2 hours</th></tr></thead>
-          <tbody id="nowcast-table"></tbody>
-        </table>
-      </div>
-      <div style="margin-top:16px">
+      <div>
         <div id="radar-map" role="img" aria-label="Rain radar over southern Singapore, with recent lightning and the 6 km ring around Siloso"></div>
         <div class="radar-controls">
           <button type="button" id="radar-play">Pause</button>
@@ -472,15 +466,8 @@
     </section>
   </section>
 
-  <!-- Upcoming club sessions -->
-  <section id="sessions" class="block" aria-labelledby="sessions-h">
-    <h2 id="sessions-h">Coming up</h2>
-    <p class="sessions-intro">Tides are known days ahead, so the route advice below is solid. Lightning and haze can only be called on the day. Check <a href="#now">Now</a> before you launch.</p>
-    <div class="session-grid" id="session-grid"></div>
-  </section>
-
   <!-- Haze -->
-  <section class="block" id="haze-card" aria-labelledby="haze-h" style="border-bottom:0">
+  <section class="block" id="haze-card" aria-labelledby="haze-h">
     <div class="block-head">
       <h2 id="haze-h">Haze, south</h2>
       <span class="tag" id="haze-badge" data-level="unknown">…</span>
@@ -491,6 +478,13 @@
     </div>
     <p class="sub" id="haze-time"></p>
     <p class="source">Club limit is PSI 120. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
+  </section>
+
+  <!-- Upcoming club sessions -->
+  <section id="sessions" class="block" aria-labelledby="sessions-h" style="border-bottom:0">
+    <h2 id="sessions-h">Coming up</h2>
+    <p class="sessions-intro">Tides are known days ahead, so the route advice below is solid. Lightning and haze can only be called on the day. Check <a href="#now">Now</a> before you launch.</p>
+    <div class="session-grid" id="session-grid"></div>
   </section>
 </main>
 
@@ -1104,8 +1098,6 @@
       const vp = item.valid_period || {};
       $('nowcast').textContent = sentosa ? sentosa.text.replace(/\s*\((Day|Night)\)/, '') : '–';
       $('nowcast-sub').textContent = vp.text || (vp.start ? `${fmtTime(new Date(vp.start))} to ${fmtTime(new Date(vp.end))}` : '');
-      $('nowcast-table').innerHTML = (watchAreas.length ? watchAreas : near).map((a) =>
-        `<tr${near.includes(a) ? ' class="near"' : ''}><td>${esc(a.area)}</td><td class="num">${a.km != null ? a.km.toFixed(1) + ' km' : '–'}</td><td>${esc(a.text.replace(/\s*\((Day|Night)\)/, ''))}</td></tr>`).join('');
       if (sentosa) glance.push(`Sentosa, next 2 hours: ${esc(lower(sentosa.text))}.`);
       const cat1Area = near.find((a) => /thunder|heavy/i.test(a.text));
       if (cat1Area) {

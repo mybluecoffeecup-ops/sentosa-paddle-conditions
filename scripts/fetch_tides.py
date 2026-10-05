@@ -71,11 +71,31 @@ def parse(raw_html, today=None):
     return [seen[k] for k in sorted(seen)]
 
 
+def diagnose(raw_html):
+    """Print a short excerpt of the page so a layout change can be fixed from the Actions log."""
+    text = page_text(raw_html)
+    title = re.search(r"(?is)<title>(.*?)</title>", raw_html)
+    print(f"page: {len(raw_html)} bytes, title: {title.group(1).strip() if title else '-'}")
+    for i, m in enumerate(re.finditer(r"(?i)(high|low)\s*tide", text)):
+        if i >= 6:
+            break
+        print("text:", text[max(0, m.start() - 80):m.end() + 160])
+    for i, m in enumerate(re.finditer(r"(?i)(high|low)\s*tide", raw_html)):
+        if i >= 4:
+            break
+        print("html:", raw_html[max(0, m.start() - 300):m.end() + 500].replace("\n", " "))
+    for m in re.finditer(r"(?i)\"(tides?|tideDays|extremes|heights?)\"\s*:", raw_html):
+        print("json key:", raw_html[m.start():m.start() + 300].replace("\n", " "))
+        break
+
+
 def main():
     if len(sys.argv) != 2:
         sys.exit("usage: fetch_tides.py <output.json>")
-    extremes = parse(fetch(SOURCE_URL))
+    raw = fetch(SOURCE_URL)
+    extremes = parse(raw)
     if len(extremes) < 4:
+        diagnose(raw)
         sys.exit(f"only parsed {len(extremes)} tide turns from {SOURCE_URL}; page layout may have changed")
     out = {
         "source": SOURCE_URL,

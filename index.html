@@ -345,7 +345,7 @@
     <div class="call" id="verdict" data-level="unknown" aria-live="polite">
       <div class="call-line"><h2 id="verdict-title">Checking…</h2></div>
       <ul class="reasons" id="verdict-reasons"></ul>
-      <p class="fine">Club rules: no paddling in CAT 1, or when the 24-hour PSI is over 120. We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
+      <p class="fine">Club rules: no paddling in CAT 1, or when the 1-hour PM2.5 is 75 µg/m³ or more (about the same as PSI 120). We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
     </div>
 
     <!-- At a glance: four panes -->
@@ -379,7 +379,7 @@
         <div class="q-head"><a class="q-title" href="#haze-card">Haze</a><span class="tag" id="q-haze-tag" data-level="unknown">…</span></div>
         <div>
           <div class="q-big" id="q-psi">–</div>
-          <div class="q-sub" id="q-psi-sub">24-hour PSI, south</div>
+          <div class="q-sub" id="q-psi-sub">1-hour PM2.5, south</div>
         </div>
         <div id="q-psi-scale"></div>
         <p class="q-line" id="q-haze-line"></p>
@@ -473,11 +473,11 @@
       <span class="tag" id="haze-badge" data-level="unknown">…</span>
     </div>
     <div class="stats">
+      <div><div class="label">PM2.5, last hour</div><div class="value" id="pm25">–</div><div class="sub" id="pm25-band"></div></div>
       <div><div class="label">24-hour PSI</div><div class="value" id="psi">–</div><div class="sub" id="psi-band"></div></div>
-      <div><div class="label">PM2.5, 1 hour</div><div class="value" id="pm25">–</div><div class="sub" id="pm25-band"></div></div>
     </div>
     <p class="sub" id="haze-time"></p>
-    <p class="source">Club limit is PSI 120. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
+    <p class="source">The club limit is a 1-hour PM2.5 of 75 µg/m³, which matches PSI 120. The hourly reading reacts to haze much faster than the 24-hour PSI. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
   </section>
 
   <!-- Upcoming club sessions -->
@@ -507,7 +507,9 @@
     // CAT 1, modelled on the myENV lightning alert: cloud-to-ground lightning, or a thundery-shower
     // (or heavy-rain) 2-hr forecast, within 6 km. Strikes count for 30 minutes.
     cat1: { radiusKm: 6, strikeWindowMin: 30, watchKm: 15 },
-    psi: { hold: 120, caution: 100 },  // club rule: don't go above 24-hr PSI 120
+    // Club rule was 24-hr PSI 120. NEA's hourly figure is 1-hr PM2.5 (µg/m³); PSI 120 corresponds to a
+    // PM2.5 of about 74, so hold at 75+. Watch from 56, the start of NEA's 'Elevated' band.
+    pm25: { hold: 75, caution: 56, psiEquivalent: 120 },
     // 'outback' routes have a fixed outbound heading; 'loop' routes can be paddled either way round.
     routes: [
       { key: 'short', name: 'White Marker, 10 km', minutes: 75, type: 'outback', outbound: 'east', turnPoint: 'the White Marker' },
@@ -898,12 +900,12 @@
     parts.push(`<text class="now-label" x="${x(now) - 4}" y="${pad.t - 6}" text-anchor="end">now</text>`);
     return `<svg class="tide-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tide from 3 hours ago to 9 hours ahead">${parts.join('')}</svg>`;
   }
-  function psiScaleHtml(psi) {
-    const pct = (v) => Math.min(v, 200) / 2;
-    return `<div class="psi-scale" role="img" aria-label="PSI ${psi} on a scale to 200, club limit ${CONFIG.psi.hold}">
-      <div class="psi-track"><div class="psi-fill${psi > CONFIG.psi.hold ? ' over' : ''}" style="width:${pct(psi)}%"></div>
-        <div class="psi-limit" style="left:${pct(CONFIG.psi.hold)}%"><span>limit ${CONFIG.psi.hold}</span></div></div>
-      <div class="psi-axis"><span>0</span><span>100</span><span>200</span></div>
+  function pm25ScaleHtml(pm) {
+    const max = 150, pct = (v) => Math.min(v, max) / max * 100, limit = CONFIG.pm25.hold;
+    return `<div class="psi-scale" role="img" aria-label="PM2.5 ${pm} µg/m³ on a scale to ${max}, club limit ${limit}">
+      <div class="psi-track"><div class="psi-fill${pm >= limit ? ' over' : ''}" style="width:${pct(pm)}%"></div>
+        <div class="psi-limit" style="left:${pct(limit)}%"><span>limit ${limit}</span></div></div>
+      <div class="psi-axis"><span>0</span><span>${max / 2}</span><span>${max}</span></div>
     </div>`;
   }
 
@@ -977,29 +979,44 @@
     return diff > 120 ? 'Against the tide, expect chop' : diff < 60 ? 'With the tide' : 'Across the tide';
   }
 
-  // ---------- Haze (club rule: no paddling above 24-hr PSI 120) ----------
+  // ---------- Haze (club rule: no paddling at 1-hr PM2.5 75+, the equivalent of 24-hr PSI 120) ----------
   const psiBand = (v) => v <= 50 ? 'Good' : v <= 100 ? 'Moderate' : v <= 200 ? 'Unhealthy' : v <= 300 ? 'Very unhealthy' : 'Hazardous';
   const pm25Band = (v) => v <= 55 ? 'Band I, normal' : v <= 150 ? 'Band II, elevated' : v <= 250 ? 'Band III, high' : 'Band IV, very high';
   async function loadHaze() {
-    try {
-      const j = await getJSON(`${API}/psi`);
-      const item = (j.data || j).items[0];
-      const r = item.readings;
-      const psi = r.psi_twenty_four_hourly.south, pm = r.pm25_one_hourly?.south;
-      $('psi').textContent = psi;
-      $('psi-band').textContent = psiBand(psi);
-      $('pm25').textContent = pm ?? '–';
-      $('pm25-band').textContent = pm != null ? `µg/m³, ${pm25Band(pm)}` : '';
+    // 1-hr PM2.5 has its own NEA feed; the PSI feed gives the 24-hr PSI (and sometimes PM2.5 too).
+    const [pmRes, psiRes] = await Promise.allSettled([getJSON(`${API}/pm25`), getJSON(`${API}/psi`)]);
+    const latest = (res) => (res.status === 'fulfilled' ? ((res.value.data || res.value).items || [])[0] : null);
+    const pmItem = latest(pmRes), psiItem = latest(psiRes);
+    const pm = pmItem?.readings?.pm25_one_hourly?.south ?? psiItem?.readings?.pm25_one_hourly?.south ?? null;
+    const psi = psiItem?.readings?.psi_twenty_four_hourly?.south ?? null;
+    const { hold, caution, psiEquivalent } = CONFIG.pm25;
+
+    $('pm25').innerHTML = pm != null ? `${pm} <span class="kt">µg/m³</span>` : '–';
+    $('pm25-band').textContent = pm != null ? pm25Band(pm) : 'No reading';
+    $('psi').textContent = psi ?? '–';
+    $('psi-band').textContent = psi != null ? psiBand(psi) : 'No reading';
+    const stamp = pmItem || psiItem;
+    $('haze-time').textContent = stamp ? `NEA reading at ${fmtTime(new Date(stamp.updatedTimestamp || stamp.update_timestamp || stamp.timestamp))}` : '';
+
+    if (pm != null) {
+      $('q-psi').innerHTML = `${pm}<small>µg/m³</small>`;
+      $('q-psi-sub').textContent = `1-hour PM2.5, south. ${pm25Band(pm).replace(/^Band \w+, /, '').replace(/^./, (c) => c.toUpperCase())}.`;
+      $('q-psi-scale').innerHTML = pm25ScaleHtml(pm);
+      $('q-haze-line').textContent = psi != null ? `24-hour PSI is ${psi} (${psiBand(psi).toLowerCase()}).` : '';
+      const both = `PM2.5 is ${pm} µg/m³ in the south over the last hour${psi != null ? `, and the 24-hour PSI is ${psi}` : ''}.`;
+      if (pm >= hold) setStatus('haze', 'haze-badge', 'hold', [`${both} That's over the club limit of ${hold} µg/m³ (PSI ${psiEquivalent}).`]);
+      else if (pm >= caution) setStatus('haze', 'haze-badge', 'caution', [`${both} That's under the limit of ${hold}, but haze is building.`]);
+      else setStatus('haze', 'haze-badge', 'go', [both]);
+    } else if (psi != null) {
+      // No hourly reading: fall back to the old 24-hr PSI rule.
       $('q-psi').textContent = psi;
-      $('q-psi-sub').textContent = `24-hour PSI, south. ${psiBand(psi)}.`;
-      $('q-psi-scale').innerHTML = psiScaleHtml(psi);
-      $('q-haze-line').textContent = pm != null ? `PM2.5 ${pm} µg/m³ over the last hour.` : '';
-      $('haze-time').textContent = `NEA reading at ${fmtTime(new Date(item.updatedTimestamp || item.update_timestamp || item.timestamp))}`;
-      if (psi > CONFIG.psi.hold) setStatus('haze', 'haze-badge', 'hold', [`PSI is ${psi} in the south, over the club limit of ${CONFIG.psi.hold}.`]);
-      else if (psi > CONFIG.psi.caution) setStatus('haze', 'haze-badge', 'caution', [`PSI is ${psi} in the south. That's under the limit of ${CONFIG.psi.hold}, but close.`]);
-      else setStatus('haze', 'haze-badge', 'go', [`PSI is ${psi} in the south (${psiBand(psi).toLowerCase()}).`]);
-    } catch (e) {
-      $('psi-band').innerHTML = `<span class="err">Couldn't load (${esc(e.message)})</span>`;
+      $('q-psi-sub').textContent = `24-hour PSI, south. No hourly PM2.5 reading.`;
+      $('q-psi-scale').innerHTML = '';
+      $('q-haze-line').textContent = '';
+      const level = psi > psiEquivalent ? 'hold' : psi > 100 ? 'caution' : 'go';
+      setStatus('haze', 'haze-badge', level, [`No hourly PM2.5 reading, so going by the 24-hour PSI of ${psi}${level === 'hold' ? `, over the club limit of ${psiEquivalent}` : ''}.`]);
+    } else {
+      $('pm25-band').innerHTML = '<span class="err">Couldn\'t load</span>';
       $('q-psi-sub').innerHTML = '<span class="err">Couldn\'t load the haze reading.</span>';
       setStatus('haze', 'haze-badge', 'unknown', ['Couldn\'t load the haze reading. Check haze.gov.sg.']);
     }

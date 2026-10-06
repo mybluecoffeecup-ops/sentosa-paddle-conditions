@@ -10,8 +10,8 @@ A pre-paddle conditions quick reference for Austcham Paddle Club crews launching
 
 `index.html` is organised in three layers: HTML in `<body>`, one `<style>` block in `<head>`, and one `<script>` block at the end of `<body>`. Keep new code in that structure.
 
-- **`CONFIG`** (top of the script) holds the club rules (CAT 1 radius, PSI limit), routes and durations, session times, the White Marker location and the current-direction convention. Change behaviour there first.
-- **Data is fetched in the browser** from data.gov.sg (NEA lightning, 2-hr and 4-day forecasts, rainfall, wind, PSI), Open-Meteo (wind forecast; marine sea-level as the tide fallback) and NEA radar images. Leaflet (cdnjs) draws the radar map.
+- **`CONFIG`** (top of the script) holds the club rules (CAT 1 radius, haze limit as 1-hour PM2.5), routes and durations, session times, the White Marker location and the current-direction convention. Change behaviour there first.
+- **Data is fetched in the browser** from data.gov.sg (NEA lightning, 2-hr and 4-day forecasts, rainfall, wind, PM2.5, PSI), Open-Meteo (wind forecast; marine sea-level as the tide fallback) and NEA radar images. Leaflet (cdnjs) draws the radar map.
 - **Tides** come from `data/tides.json`. It is generated in CI by [scripts/fetch_tides.py](scripts/fetch_tides.py), which scrapes tide-forecast.com, and is gitignored. `loadTides()` falls back to Open-Meteo modelled sea level when the file is missing, stale or too short; `pick(from, to)` chooses the source that covers each window.
 - **Verdict:** only CAT 1 and haze affect Go/Hold. Wind and tide are info only.
 - **Route plans** (`routePlan` / `routeHtml`) use the net current over each half of the paddle. The rule is to push into the current first and ride it home.

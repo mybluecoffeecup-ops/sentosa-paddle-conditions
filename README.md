@@ -10,10 +10,10 @@ On a phone, use **Add to Home Screen** to get an app-style icon that opens full 
 
 A **Right now** view plus forecasts for the next club sessions (Tue 6am and Thu 6am for the 10 km route; Sat 8am and Sun 4pm for the islands loop):
 
-- **At a glance.** Four panes under the verdict, in order of importance: tide and current with which way to push first (top left), wind in km/h on a compass (top right), the latest radar snapshot with lightning (bottom left), and haze against the PSI 120 limit (bottom right). Each pane links to its full section.
-- **Go / Hold verdict on the club rules.** No paddling during a CAT 1 lightning alert, or when the southern 24-hr PSI is above 120. CAT 1 is modelled on the myENV lightning alert: cloud-to-ground lightning, or a thundery / heavy-rain 2-hr forecast, within 6 km of Siloso.
+- **At a glance.** Four panes under the verdict, in order of importance: tide and current with which way to push first (top left), wind in km/h on a compass (top right), the latest radar snapshot with lightning (bottom left), and haze: the 1-hour PM2.5 against the club limit, with the 24-hour PSI alongside (bottom right). Each pane links to its full section.
+- **Go / Hold verdict on the club rules.** No paddling during a CAT 1 lightning alert, or when the southern 1-hour PM2.5 is 75 µg/m³ or more (the equivalent of 24-hr PSI 120). CAT 1 is modelled on the myENV lightning alert: cloud-to-ground lightning, or a thundery / heavy-rain 2-hr forecast, within 6 km of Siloso.
 - **Lightning & rain.** Strikes in the last 30 min with distance from Siloso and the earliest all-clear time, plus NEA 2-hr forecasts for nearby areas, the nearest rain gauge, and an animated NEA rain radar showing the 6 km CAT 1 ring, the White Marker and recent strikes.
-- **Haze.** 24-hr PSI and 1-hr PM2.5 for the southern region.
+- **Haze.** 1-hour PM2.5 for the southern region, which decides the call, with the 24-hour PSI alongside.
 - **Tide, current & route plan.** Rising/falling, height, next turn, and a 3-day tide curve with night shading and session markers. Route advice follows the club rule of pushing into the current first and riding it home (falling tide, E→W current → push East):
   - **10 km White Marker** (out and back East, ~1h15): whether each leg has the current with or against it, flagged ✓ Ideal or ✗ Hard finish.
   - **Around the islands** (up to 2.5 hrs): which way round to go so you finish with the current.
@@ -29,7 +29,7 @@ Rules, routes, durations, session times and the current-direction convention all
 |---|---|---|
 | Tide turns | [tide-forecast.com — Victoria Dock](https://www.tide-forecast.com/tide/Singapore-Victoria-Dock/tide-times) | Scraped by `scripts/fetch_tides.py` during each deploy into `data/tides.json` |
 | Tide fallback | [Open-Meteo Marine](https://open-meteo.com/en/docs/marine-weather-api) sea level | In the browser, when `tides.json` is missing, stale, or doesn't reach far enough ahead |
-| Lightning, 2-hr & 4-day forecasts, rainfall, wind obs, PSI | NEA via [data.gov.sg](https://data.gov.sg/) real-time APIs | In the browser, refreshed every 5 min |
+| Lightning, 2-hr & 4-day forecasts, rainfall, wind obs, PM2.5, PSI | NEA via [data.gov.sg](https://data.gov.sg/) real-time APIs | In the browser, refreshed every 5 min |
 | Rain radar | [NEA rain areas](https://www.nea.gov.sg/weather/rain-areas) | 5-minute radar images |
 | Wind forecast | [Open-Meteo](https://open-meteo.com/) | In the browser |
 

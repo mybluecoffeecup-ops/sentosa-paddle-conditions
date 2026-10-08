@@ -345,7 +345,7 @@
     <div class="call" id="verdict" data-level="unknown" aria-live="polite">
       <div class="call-line"><h2 id="verdict-title">Checking…</h2></div>
       <ul class="reasons" id="verdict-reasons"></ul>
-      <p class="fine">Club rules: no paddling in CAT 1, or when the 1-hour PM2.5 is 75 µg/m³ or more (about the same as PSI 120). We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
+      <p class="fine">Club rules: no paddling in CAT 1, or when the 1-hour PM2.5 is 100 µg/m³ or more. We work out CAT 1 from NEA data: lightning, or a thundery or heavy-rain forecast, within 6 km of Siloso. If myENV or the crew lead says otherwise, go with them.</p>
     </div>
 
     <!-- At a glance: four panes -->
@@ -477,7 +477,7 @@
       <div><div class="label">24-hour PSI</div><div class="value" id="psi">–</div><div class="sub" id="psi-band"></div></div>
     </div>
     <p class="sub" id="haze-time"></p>
-    <p class="source">The club limit is a 1-hour PM2.5 of 75 µg/m³, which matches PSI 120. The hourly reading reacts to haze much faster than the 24-hour PSI. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
+    <p class="source">The club limit is a 1-hour PM2.5 of 100 µg/m³, about the same as a PSI of 147. The hourly reading reacts to haze much faster than the 24-hour PSI. From <a href="https://www.haze.gov.sg/" target="_blank" rel="noopener">haze.gov.sg</a>.</p>
   </section>
 
   <!-- Upcoming club sessions -->
@@ -507,9 +507,9 @@
     // CAT 1, modelled on the myENV lightning alert: cloud-to-ground lightning, or a thundery-shower
     // (or heavy-rain) 2-hr forecast, within 6 km. Strikes count for 30 minutes.
     cat1: { radiusKm: 6, strikeWindowMin: 30, watchKm: 15 },
-    // Club rule was 24-hr PSI 120. NEA's hourly figure is 1-hr PM2.5 (µg/m³); PSI 120 corresponds to a
-    // PM2.5 of about 74, so hold at 75+. Watch from 56, the start of NEA's 'Elevated' band.
-    pm25: { hold: 75, caution: 56, psiEquivalent: 120 },
+    // Haze is judged on NEA's hourly figure, 1-hr PM2.5 (µg/m³). Hold at 100+. Watch from 56, the start
+    // of NEA's 'Elevated' band. psiEquivalent (PM2.5 100 ≈ PSI 147) is only used if no hourly reading loads.
+    pm25: { hold: 100, caution: 56, psiEquivalent: 147 },
     // 'outback' routes have a fixed outbound heading; 'loop' routes can be paddled either way round.
     routes: [
       { key: 'short', name: 'White Marker, 10 km', minutes: 75, type: 'outback', outbound: 'east', turnPoint: 'the White Marker' },
@@ -979,7 +979,7 @@
     return diff > 120 ? 'Against the tide, expect chop' : diff < 60 ? 'With the tide' : 'Across the tide';
   }
 
-  // ---------- Haze (club rule: no paddling at 1-hr PM2.5 75+, the equivalent of 24-hr PSI 120) ----------
+  // ---------- Haze (club rule: no paddling at 1-hr PM2.5 100+) ----------
   const psiBand = (v) => v <= 50 ? 'Good' : v <= 100 ? 'Moderate' : v <= 200 ? 'Unhealthy' : v <= 300 ? 'Very unhealthy' : 'Hazardous';
   const pm25Band = (v) => v <= 55 ? 'Band I, normal' : v <= 150 ? 'Band II, elevated' : v <= 250 ? 'Band III, high' : 'Band IV, very high';
   async function loadHaze() {
@@ -1004,7 +1004,7 @@
       $('q-psi-scale').innerHTML = pm25ScaleHtml(pm);
       $('q-haze-line').textContent = psi != null ? `24-hour PSI is ${psi} (${psiBand(psi).toLowerCase()}).` : '';
       const both = `PM2.5 is ${pm} µg/m³ in the south over the last hour${psi != null ? `, and the 24-hour PSI is ${psi}` : ''}.`;
-      if (pm >= hold) setStatus('haze', 'haze-badge', 'hold', [`${both} That's over the club limit of ${hold} µg/m³ (PSI ${psiEquivalent}).`]);
+      if (pm >= hold) setStatus('haze', 'haze-badge', 'hold', [`${both} That's over the club limit of ${hold} µg/m³.`]);
       else if (pm >= caution) setStatus('haze', 'haze-badge', 'caution', [`${both} That's under the limit of ${hold}, but haze is building.`]);
       else setStatus('haze', 'haze-badge', 'go', [both]);
     } else if (psi != null) {
